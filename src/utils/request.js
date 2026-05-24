@@ -1,20 +1,46 @@
 import axios from 'axios'
+import { ElMessage } from 'element-plus'
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || '/api',
   timeout: 10000
 })
 
+// 请求拦截器 - 加 token
 request.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
   if (token) config.headers.Authorization = `Bearer ${token}`
   return config
 })
 
+// 响应拦截器 - 统一处理业务状态码
 request.interceptors.response.use(
-  (res) => res.data,
+  (res) => {
+    const { code, message, data } = res.data
+
+    if (code === 200) {
+      return data   // ★ 直接返回 data，页面调用时不用再 .data.data
+    }
+
+    // token 过期 / 未授权
+    if (code === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+      return Promise.reject(new Error('登录已过期，请重新登录'))
+    }
+
+    // 其他业务错误（如注册失败）
+    ElMessage.error(message || '请求失败')
+    return Promise.reject(new Error(message))
+  },
   (err) => {
+    // HTTP 层面的错误（网络断开、500 等）
+    if (err.response?.status === 401) {
+      localStorage.removeItem('token')
+      window.location.href = '/login'
+    }
     const msg = err?.response?.data?.message || err.message || '请求失败'
+    ElMessage.error(msg)
     return Promise.reject(new Error(msg))
   }
 )
