@@ -1,6 +1,7 @@
 import { ref, computed, reactive } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
+import { getUserInfo } from '../api/user'
 
 // 模块级共享状态，所有导入者共享
 const userInfo = reactive({
@@ -24,7 +25,6 @@ function loadFromStorage() {
     }
   }
 }
-loadFromStorage()
 
 function formatBytes(bytes) {
   if (!bytes || bytes === 0) return '0 B'
@@ -35,6 +35,8 @@ function formatBytes(bytes) {
 }
 
 export function useUserInfo() {
+  loadFromStorage()
+
   const router = useRouter()
 
   const username = computed(() => userInfo.nam || '未知用户')
@@ -50,12 +52,14 @@ export function useUserInfo() {
     return `${used} / ${total}`
   })
 
-  // TODO: 后续对接后端刷新用户信息
   async function refreshUserInfo() {
-    // const data = await getUserInfo()  // 调用后端接口
-    // Object.assign(userInfo, data)
-    // localStorage.setItem('userInfo', JSON.stringify(data))
-    loadFromStorage()
+    if (!userInfo.userId) {
+      loadFromStorage()
+      return
+    }
+    const data = await getUserInfo(userInfo.userId)
+    Object.assign(userInfo, data)
+    localStorage.setItem('userInfo', JSON.stringify(data))
   }
 
   function logout() {

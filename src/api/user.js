@@ -17,3 +17,11 @@ export function register({ nam, pas, tel, eml }) {
     data: { nam, pas, tel, eml }
   })
 }
+
+// 获取用户信息
+export function getUserInfo(userId) {
+  return request({
+    url: `/user/info/${userId}`,
+    method: 'get'
+  })
+}
