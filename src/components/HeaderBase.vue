@@ -35,11 +35,16 @@ const { isVisible, hide } = useHeaderBase()
   height: 5vh;
   z-index: 9999;
   background-color: #409eff;
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
   box-sizing: border-box;
+}
+
+.header-base :deep(.el-button) {
+  color: #fff;
 }
 
 .header-base-left {

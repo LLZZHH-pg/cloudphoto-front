@@ -6,12 +6,13 @@ import LoginRegister from '../view/LoginRegister.vue'
 
 const routes = [
   { path: '/', redirect: '/photo' },
-  { path: '/photo', name: 'photo', component: PhotoPage, meta: { requiresAuth: true } },
-  { path: '/album', name: 'album', component: AlbumPage, meta: { requiresAuth: true } },
-  { path: '/recycle', name: 'recycle', component: RecyclePage, meta: { requiresAuth: true } },
-  // 白名单路由
-  { path: '/login', name: 'login', component: LoginRegister },
-  { path: '/register', name: 'register', component: LoginRegister }
+
+  { path: '/photo', name: 'photo', component: PhotoPage},
+  { path: '/album', name: 'album', component: AlbumPage},
+  { path: '/recycle', name: 'recycle', component: RecyclePage},
+
+  { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true }},
+  { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true }}
 ]
 
 const router = createRouter({
@@ -20,7 +21,8 @@ const router = createRouter({
 })
 
 // ===== 全局前置守卫 =====
-const WHITE_LIST = ['login', 'register']  // 白名单路由的 name
+const WHITE_LIST = ['login', 'register']  // 白名单路由
+// const WHITE_LIST = ['login', 'register', 'photo', 'album', 'recycle']  //测试
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')

@@ -29,8 +29,6 @@ request.interceptors.response.use(
       return Promise.reject(new Error('登录已过期，请重新登录'))
     }
 
-    // 其他业务错误（如注册失败）
-    ElMessage.error(message || '请求失败')
     return Promise.reject(new Error(message))
   },
   (err) => {

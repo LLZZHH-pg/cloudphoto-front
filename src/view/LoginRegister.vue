@@ -1,12 +1,21 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login, register } from '../api/user'
 
 const router = useRouter()
 const route = useRoute()
-const activeTab = ref('login')
+
+const activeTab = computed({
+  get: () => route.name === 'register' ? 'register' : 'login',
+  set: (tab) => {
+    // tab 切换时同步更新 URL
+    const name = tab === 'register' ? 'register' : 'login'
+    router.push({ name, query: { redirect: route.query.redirect } })
+  }
+})
+
 const loading = ref(false)
 
 // 登录表单
@@ -31,10 +40,10 @@ const registerForm = reactive({
 })
 
 const registerRules = {
-  nam: [{ required: true, message: '请输入用户名', trigger: 'blur' }],
-  pas: [{ required: true, message: '请输入密码', trigger: 'blur' }],
   tel: [{ required: true, message: '请输入手机号', trigger: 'blur' }],
-  eml: [{ required: true, message: '请输入邮箱', trigger: 'blur' }]
+  pas: [{ required: true, message: '请输入密码', trigger: 'blur' }],
+  nam: [{ required: false }],
+  eml: [{ required: false }]
 }
 
 const registerFormRef = ref(null)
@@ -122,11 +131,11 @@ async function handleRegister() {
             label-width="0"
             class="form"
           >
-            <el-form-item prop="nam">
+            <el-form-item prop="tel">
               <el-input
-                v-model="registerForm.nam"
-                placeholder="用户名"
-                :prefix-icon="'User'"
+                v-model="registerForm.tel"
+                placeholder="手机号"
+                :prefix-icon="'Phone'"
                 size="large"
               />
             </el-form-item>
@@ -140,18 +149,18 @@ async function handleRegister() {
                 show-password
               />
             </el-form-item>
-            <el-form-item prop="tel">
+            <el-form-item prop="nam">
               <el-input
-                v-model="registerForm.tel"
-                placeholder="手机号"
-                :prefix-icon="'Phone'"
+                v-model="registerForm.nam"
+                placeholder="用户名（选填）"
+                :prefix-icon="'User'"
                 size="large"
               />
             </el-form-item>
             <el-form-item prop="eml">
               <el-input
                 v-model="registerForm.eml"
-                placeholder="邮箱"
+                placeholder="邮箱（选填）"
                 :prefix-icon="'Message'"
                 size="large"
               />
