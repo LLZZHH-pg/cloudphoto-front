@@ -50,7 +50,7 @@ const activeTab = computed({
               <span>照片</span>
             </div>
           </template>
-          <router-view />
+          <router-view v-if="activeTab === 'photo'" />
         </el-tab-pane>
         <el-tab-pane name="album">
           <template #label>
@@ -59,7 +59,7 @@ const activeTab = computed({
               <span>影集</span>
             </div>
           </template>
-          <router-view />
+          <router-view v-if="activeTab === 'album'" />
         </el-tab-pane>
         <el-tab-pane name="recycle">
           <template #label>
@@ -68,7 +68,7 @@ const activeTab = computed({
               <span>回收站</span>
             </div>
           </template>
-          <router-view />
+          <router-view v-if="activeTab === 'recycle'" />
         </el-tab-pane>
       </el-tabs>
 
