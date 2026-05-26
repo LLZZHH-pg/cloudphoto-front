@@ -1,9 +1,11 @@
 <script setup>
-import { useUserInfo } from '../composables/useUserInfo'
+import { useUserInfo } from '../composables/useUserMenu'
 import { useDarkMode } from '../composables/useDarkMode'
+import { useRouter } from 'vue-router'
 
 const { username, storagePercent, storageText, logout } = useUserInfo()
 const { isDark } = useDarkMode()
+const router = useRouter()
 
 function handleDarkChange(val) {
   isDark.value = val
@@ -61,7 +63,11 @@ function handleDarkChange(val) {
 
       <!-- 3. 修改信息按钮 -->
       <div class="menu-section">
-        <el-button text style="width: 100%; justify-content: flex-start;">
+        <el-button
+          text
+          style="width: 100%; justify-content: flex-start;"
+          @click="router.push('/reregister')"
+        >
           <el-icon :size="16"><Edit /></el-icon>
           <span>修改信息</span>
         </el-button>

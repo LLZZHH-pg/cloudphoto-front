@@ -3,6 +3,7 @@ import PhotoPage from '../view/PhotoPage.vue'
 import AlbumPage from '../view/AlbumPage.vue'
 import RecyclePage from '../view/RecyclePage.vue'
 import LoginRegister from '../view/LoginRegister.vue'
+import ReRegister from '../view/ReRegister.vue'
 
 const routes = [
   { path: '/', redirect: '/photo' },
@@ -12,7 +13,8 @@ const routes = [
   { path: '/recycle', name: 'recycle', component: RecyclePage},
 
   { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true }},
-  { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true }}
+  { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true }},
+  { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true }}
 ]
 
 const router = createRouter({

@@ -57,7 +57,7 @@ export function useUserInfo() {
       loadFromStorage()
       return
     }
-    const data = await getUserInfo(userInfo.userId)
+    const data = await getUserInfo()
     Object.assign(userInfo, data)
     localStorage.setItem('userInfo', JSON.stringify(data))
   }

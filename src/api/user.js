@@ -19,9 +19,18 @@ export function register({ nam, pas, tel, eml }) {
 }
 
 // 获取用户信息
-export function getUserInfo(userId) {
+export function getUserInfo() {
   return request({
-    url: `/user/info/${userId}`,
+    url: `/user/info`,
     method: 'get'
+  })
+}
+
+// 更新用户信息
+export function updateUserInfo({ nam, pas, tel, eml }) {
+  return request({
+    url: '/user/info/update',
+    method: 'post',
+    data: { nam, pas, tel, eml }
   })
 }
