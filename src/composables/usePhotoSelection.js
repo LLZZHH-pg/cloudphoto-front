@@ -1,94 +1,120 @@
 import { ref, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useHeaderBase } from './useHeaderBase'
 
 // ===== 模块级共享状态 =====
-const selectedIds = ref(new Set())
+const selectedMap = ref(new Map())
 const isSelecting = ref(false)
 
 const { isVisible, show: showHeader, hide: hideHeader } = useHeaderBase()
 
-// 当用户点击 HeaderBase 的关闭按钮 → isVisible 变 false → 清除所有选择状态
+// ===== 模块级标志：确保路由监听只注册一次 =====
+let _routeWatchInitialized = false
+
+// ===== 工具函数：从 previewUrl 推导存储 URL =====
+function deriveStorageUrl(previewUrl) {
+  return previewUrl.replace(/-normal|-thumb/, '').split('?')[0]
+}
+
+// ===== 清除所有选择状态 =====
+function clearSelection() {
+  selectedMap.value = new Map()
+  isSelecting.value = false
+  hideHeader()
+}
+
+// ===== HeaderBase 关闭按钮 → 清除选择 =====
 watch(isVisible, (newVal, oldVal) => {
   if (!newVal && oldVal) {
-    selectedIds.value = new Set()
+    selectedMap.value = new Map()
     isSelecting.value = false
   }
 })
 
 // ===== 导出 composable =====
 export function usePhotoSelection() {
-  const selectedCount = computed(() => selectedIds.value.size)
+  // 路由切换时自动退出选择状态（只注册一次）
+  if (!_routeWatchInitialized) {
+    _routeWatchInitialized = true
+    const route = useRoute()
+    watch(() => route.name, () => {
+      clearSelection()
+    })
+  }
 
-  /**
-   * 切换单张照片的选中状态
-   */
-  function togglePhoto(id) {
-    const newSet = new Set(selectedIds.value)
-    if (newSet.has(id)) {
-      newSet.delete(id)
+  const selectedCount = computed(() => selectedMap.value.size)
+
+  function togglePhoto(photo) {
+    const newMap = new Map(selectedMap.value)
+    if (newMap.has(photo.id)) {
+      newMap.delete(photo.id)
     } else {
-      newSet.add(id)
+      newMap.set(photo.id, {
+        id: photo.id,
+        previewUrl: photo.previewUrl,
+        storageUrl: deriveStorageUrl(photo.previewUrl)
+      })
     }
-    selectedIds.value = newSet
+    selectedMap.value = newMap
 
-    // 首次选中时进入选择模式 & 显示 HeaderBase
-    if (newSet.size > 0 && !isSelecting.value) {
+    if (newMap.size > 0 && !isSelecting.value) {
       isSelecting.value = true
       showHeader()
     }
-    // 全部取消时不关闭 HeaderBase，保持选择模式
   }
 
-  /**
-   * 切换某个日期组下所有照片的选中状态
-   * @param {number[]} ids - 该日期组内所有照片的 id
-   */
-  function toggleDateGroup(ids) {
-    const newSet = new Set(selectedIds.value)
-    const allSelected = ids.length > 0 && ids.every(id => newSet.has(id))
+  function toggleDateGroup(photos) {
+    const newMap = new Map(selectedMap.value)
+    const ids = photos.map(p => p.id)
+    const allSelected = ids.length > 0 && ids.every(id => newMap.has(id))
 
     if (allSelected) {
-      ids.forEach(id => newSet.delete(id))
+      ids.forEach(id => newMap.delete(id))
     } else {
-      ids.forEach(id => newSet.add(id))
+      photos.forEach(p => {
+        if (!newMap.has(p.id)) {
+          newMap.set(p.id, {
+            id: p.id,
+            previewUrl: p.previewUrl,
+            storageUrl: deriveStorageUrl(p.previewUrl)
+          })
+        }
+      })
     }
-    selectedIds.value = newSet
+    selectedMap.value = newMap
 
-    if (newSet.size > 0 && !isSelecting.value) {
+    if (newMap.size > 0 && !isSelecting.value) {
       isSelecting.value = true
       showHeader()
     }
   }
 
-  /**
-   * 检查某张照片是否被选中
-   */
   function isSelected(id) {
-    return selectedIds.value.has(id)
+    return selectedMap.value.has(id)
   }
 
-  /**
-   * 检查某个日期组是否全部被选中
-   */
-  function isDateAllSelected(ids) {
-    return ids.length > 0 && ids.every(id => selectedIds.value.has(id))
+  function isDateAllSelected(photos) {
+    const ids = photos.map(p => p.id)
+    return ids.length > 0 && ids.every(id => selectedMap.value.has(id))
   }
 
-  /**
-   * 获取当前选中的照片 ID 列表（用于批量操作）
-   */
+  function getSelectedPhotos() {
+    return [...selectedMap.value.values()]
+  }
+
   function getSelectedIds() {
-    return [...selectedIds.value]
+    return [...selectedMap.value.keys()]
   }
 
   return {
-    selectedIds,
+    selectedMap,
     selectedCount,
     isSelecting,
     togglePhoto,
     toggleDateGroup,
     isSelected,
     isDateAllSelected,
+    getSelectedPhotos,
     getSelectedIds
   }
 }

@@ -37,3 +37,12 @@ export function softDeletePhotos(photoIds) {
     data: photoIds
   })
 }
+
+// 批量获取下载地址
+export function batchDownloadUrl(photoIds) {
+  return request({
+    url: '/media/download/batch',
+    method: 'post',
+    data: photoIds
+  })
+}

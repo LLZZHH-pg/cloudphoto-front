@@ -33,7 +33,7 @@ const { isVisible, hide } = useHeaderBase()
   left: 0;
   width: 100%;
   height: 5vh;
-  z-index: 9999;
+  z-index: 999;
   background-color: #409eff;
   color: #fff;
   display: flex;

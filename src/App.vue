@@ -1,8 +1,10 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, provide,  ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderBase from './components/HeaderBase.vue'
 import UserMenu from './components/UserMenu.vue'
+import UploadButton from './components/UploadButton.vue'
+import DownloadButton from './components/DownloadButton.vue'
 import logoUrl from './assets/logo.svg'
 
 const tabPosition = ref('left')
@@ -10,6 +12,13 @@ const route = useRoute()
 const router = useRouter()
 
 const isFullScreen = computed(() => route.meta?.fullScreen)
+
+const refreshKey = ref(0)
+provide('refreshKey', refreshKey)
+
+const showDownloadBtn = computed(() => {
+  return route.name === 'photo' || route.name === 'album'
+})
 
 const activeTab = computed({
   get: () => {
@@ -20,6 +29,15 @@ const activeTab = computed({
   },
   set: (name) => router.push({ name })
 })
+
+function onUploadSuccess() {
+  // 如果不在照片页，切过去
+  if (route.name !== 'photo') {
+    router.push({ name: 'photo' })
+  }
+  // 触发刷新信号
+  refreshKey.value++
+}
 </script>
 
 <template> 
@@ -28,7 +46,11 @@ const activeTab = computed({
   <div v-else class="common-layout">
     <el-container>
 
-      <HeaderBase />
+      <HeaderBase>
+        <template #tools>
+          <DownloadButton v-if="showDownloadBtn" />
+        </template>
+      </HeaderBase>
 
       <el-header height="5vh">
         <div class="header-content">
@@ -37,6 +59,7 @@ const activeTab = computed({
             <span class="logo-text">照片云盘</span>
           </div>
           <div class="header-right">
+            <UploadButton @upload-success="onUploadSuccess" />
             <UserMenu />
           </div>
         </div>
@@ -111,6 +134,12 @@ const activeTab = computed({
   gap: 8px;
 }
 
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .logo-img {
   height: 3.5vh;
   width: auto;
@@ -122,10 +151,6 @@ const activeTab = computed({
   color: var(--el-text-color-primary);
 }
 
-.header-right {
-  display: flex;
-  align-items: center;
-}
 </style>
 <style>
 html.dark .logo-img {

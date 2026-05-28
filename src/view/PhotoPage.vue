@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, inject, watch, provide} from 'vue'
 import { getTimeline } from '../api/photo'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
 import PhotoBox from '../components/PhotoBox.vue'
@@ -21,11 +21,10 @@ const pageSize = 20
 const loading = ref(false)
 const noMore = ref(false)
 const hoveredDate = ref(null)      // 当前鼠标悬浮的日期
-const containerRef = ref(null)
+const refreshKey = inject('refreshKey')
 
 /**
  * 将新一页数据合并到已有分组中
- * 解决同一日期跨分页被拆分的问题
  */
 function mergeTimelineGroups(existing, newGroups) {
   if (!newGroups || newGroups.length === 0) return existing
@@ -87,6 +86,13 @@ function onScroll(e) {
   }
 }
 
+watch(refreshKey, () => {
+  timelineGroups.value = []
+  currentPage.value = 1
+  noMore.value = false
+  loadMore()
+})
+
 onMounted(() => {
   loadMore()
 })
@@ -119,8 +125,8 @@ onMounted(() => {
         <CheckBox
           v-show="hoveredDate === group.date || isSelecting"
           class="date-checkbox"
-          :model-value="isDateAllSelected(group.pictures.map(p => p.pictureid))"
-          @update:model-value="toggleDateGroup(group.pictures.map(p => p.pictureid))"
+          :model-value="isDateAllSelected(group.pictures.map(p => ({ id: p.pictureid, previewUrl: p.previewUrl })))"
+          @update:model-value="toggleDateGroup(group.pictures.map(p => ({ id: p.pictureid, previewUrl: p.previewUrl })))"
         />
         <span class="date-text">{{ group.date }}</span>
         <span class="date-count">{{ group.pictures.length }} 张</span>
@@ -134,7 +140,7 @@ onMounted(() => {
           :picture="picture"
           :selected="isSelected(picture.pictureid)"
           :force-show-checkbox="isSelecting"
-          @toggle="togglePhoto(picture.pictureid)"
+          @toggle="togglePhoto({ id: picture.pictureid, previewUrl: picture.previewUrl })"
         />
       </div>
     </div>
