@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, inject, watch, provide} from 'vue'
+import { ref, computed, onMounted, inject, watch} from 'vue'
 import { getTimeline } from '../api/photo'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
 import PhotoBox from '../components/PhotoBox.vue'
+import PhotoViewer from '../components/PhotoViewer.vue'
 import CheckBox from '../components/CheckBox.vue'
 
 // ===== 选择状态 =====
@@ -20,8 +21,10 @@ const currentPage = ref(1)
 const pageSize = 20
 const loading = ref(false)
 const noMore = ref(false)
-const hoveredDate = ref(null)      // 当前鼠标悬浮的日期
+const hoveredDate = ref(null)      // 当前鼠标悬浮的日期线
 const refreshKey = inject('refreshKey')
+const viewerVisible = ref(false)
+const viewerIndex = ref(0)
 
 /**
  * 将新一页数据合并到已有分组中
@@ -96,6 +99,26 @@ watch(refreshKey, () => {
 onMounted(() => {
   loadMore()
 })
+
+/** 将所有分组中的照片展平为一个数组，供 PhotoViewer 翻页 */
+const allPhotos = computed(() => {
+  const result = []
+  for (const group of timelineGroups.value) {
+    for (const pic of group.pictures) {
+      result.push(pic)
+    }
+  }
+  return result
+})
+
+/** 点击 PhotoBox 非复选框区域 → 打开预览器 */
+function openViewer(pictureid) {
+  const idx = allPhotos.value.findIndex(p => p.pictureid === pictureid)
+  if (idx !== -1) {
+    viewerIndex.value = idx
+    viewerVisible.value = true
+  }
+}
 </script>
 
 <template>
@@ -141,20 +164,25 @@ onMounted(() => {
           :selected="isSelected(picture.pictureid)"
           :force-show-checkbox="isSelecting"
           @toggle="togglePhoto({ id: picture.pictureid, previewUrl: picture.previewUrl })"
+          @preview="openViewer"
         />
       </div>
     </div>
 
-    <!-- 加载状态 -->
     <div v-if="loading" class="loading-state">
       <el-icon class="is-loading" :size="24"><Loading /></el-icon>
       <span>加载中...</span>
     </div>
 
-    <!-- 没有更多 -->
     <div v-if="noMore && timelineGroups.length > 0" class="no-more">
       — 没有更多了 —
     </div>
+
+    <PhotoViewer
+      v-model="viewerVisible"
+      :photos="allPhotos"
+      :initial-index="viewerIndex"
+    />
   </div>
 </template>
 

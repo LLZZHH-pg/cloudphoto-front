@@ -6,7 +6,6 @@ const props = defineProps({
   picture: {
     type: Object,
     required: true
-    // { pictureid, previewUrl, shotTime, ... }
   },
   selected: {
     type: Boolean,
@@ -19,12 +18,16 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['toggle'])
+const emit = defineEmits(['toggle', 'preview'])
 
 const hover = ref(false)
 
 function onToggle() {
   emit('toggle', props.picture.pictureid)
+}
+
+function onClickPhoto() {
+  emit('preview', props.picture.pictureid)
 }
 </script>
 
@@ -33,6 +36,7 @@ function onToggle() {
     class="photo-box"
     @mouseenter="hover = true"
     @mouseleave="hover = false"
+    @click="onClickPhoto" 
   >
     <img
       :src="picture.previewUrl"
@@ -45,6 +49,7 @@ function onToggle() {
     <div
       v-show="hover || forceShowCheckbox"
       class="photo-check-overlay"
+      @click.stop 
     >
       <CheckBox
         :model-value="selected"
