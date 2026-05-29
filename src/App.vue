@@ -6,6 +6,8 @@ import UserMenu from './components/UserMenu.vue'
 import UploadButton from './components/UploadButton.vue'
 import DownloadButton from './components/DownloadButton.vue'
 import SoftDeleteButton from './components/SoftDeleteButton.vue'
+import TrashRestoreButton from './components/TrashRestoreButton.vue'
+import TrashHardDeleteButton from './components/TrashHardDeleteButton.vue'
 import logoUrl from './assets/logo.svg'
 
 const tabPosition = ref('left')
@@ -19,6 +21,10 @@ provide('refreshKey', refreshKey)
 
 const showDownloadBtn = computed(() => {
   return route.name === 'photo' || route.name === 'album'
+})
+
+const showTrashBtns = computed(() => {
+  return route.name === 'recycle'
 })
 
 const activeTab = computed({
@@ -51,6 +57,8 @@ function onUploadSuccess() {
         <template #tools>
           <DownloadButton v-if="showDownloadBtn" />
           <SoftDeleteButton v-if="showDownloadBtn" />
+          <TrashRestoreButton v-if="showTrashBtns" />
+          <TrashHardDeleteButton v-if="showTrashBtns" />
         </template>
       </HeaderBase>
 
