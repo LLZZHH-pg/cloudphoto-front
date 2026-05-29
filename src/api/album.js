@@ -34,19 +34,37 @@ export function getAlbumDetail(id) {
 }
 
 // 添加照片到影集
-export function addPhotosToAlbum(id, photoIds) {
+export function addPhotosToAlbum({ sourceAlbumId, albumId, photoIds }) {
   return request({
-    url: `/album/${id}/photos/add`,
+    url: '/album/photos/add',
     method: 'post',
-    data: { photoIds }
+    data: { sourceAlbumId, albumId, photoIds }
   })
 }
 
 // 从影集移除照片
-export function removePhotosFromAlbum(id, photoIds) {
+export function removePhotosFromAlbum({ sourceAlbumId, albumId, photoIds }) {
   return request({
-    url: `/album/${id}/photos/remove`,
+    url: `/album/photos/remove`,
     method: 'post',
-    data: { photoIds }
+    data: { sourceAlbumId, albumId, photoIds }
+  })
+}
+
+// 移动照片到其他影集
+export function movePhotosToAlbum({ sourceAlbumId, albumId, photoIds }) {
+  return request({
+    url: '/album/photos/move',
+    method: 'post',
+    data: { sourceAlbumId, albumId, photoIds }
+  })
+}
+
+// 复制照片到其他影集
+export function copyPhotosToAlbum({ sourceAlbumId, albumId, photoIds }) {
+  return request({
+    url: '/album/photos/copy',
+    method: 'post',
+    data: { sourceAlbumId, albumId, photoIds }
   })
 }

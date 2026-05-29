@@ -8,6 +8,7 @@ import DownloadButton from './components/DownloadButton.vue'
 import SoftDeleteButton from './components/SoftDeleteButton.vue'
 import TrashRestoreButton from './components/TrashRestoreButton.vue'
 import TrashHardDeleteButton from './components/TrashHardDeleteButton.vue'
+import AddToAlbum from './components/AddToAlbum.vue'
 import logoUrl from './assets/logo.svg'
 
 const tabPosition = ref('left')
@@ -55,6 +56,7 @@ function onUploadSuccess() {
 
       <HeaderBase>
         <template #tools>
+          <AddToAlbum v-if="showDownloadBtn" />
           <DownloadButton v-if="showDownloadBtn" />
           <SoftDeleteButton v-if="showDownloadBtn" />
           <TrashRestoreButton v-if="showTrashBtns" />
