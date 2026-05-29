@@ -5,6 +5,7 @@ import HeaderBase from './components/HeaderBase.vue'
 import UserMenu from './components/UserMenu.vue'
 import UploadButton from './components/UploadButton.vue'
 import DownloadButton from './components/DownloadButton.vue'
+import SoftDeleteButton from './components/SoftDeleteButton.vue'
 import logoUrl from './assets/logo.svg'
 
 const tabPosition = ref('left')
@@ -49,6 +50,7 @@ function onUploadSuccess() {
       <HeaderBase>
         <template #tools>
           <DownloadButton v-if="showDownloadBtn" />
+          <SoftDeleteButton v-if="showDownloadBtn" />
         </template>
       </HeaderBase>
 
