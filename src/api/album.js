@@ -9,11 +9,20 @@ export function getAlbumList() {
 }
 
 // 创建影集
-export function createAlbum({ name, description }) {
+export function createAlbum({ name, description, coverUrl, isPublic }) {
   return request({
     url: '/album/create',
     method: 'post',
-    data: { name, description }
+    data: { name, description, coverUrl, isPublic: isPublic ? 1 : 0 }
+  })
+}
+
+// 编辑影集
+export function updateAlbum(id, { name, description, coverUrl, isPublic }) {
+  return request({
+    url: `/album/${id}`,
+    method: 'put',
+    data: { name, description, coverUrl, isPublic: isPublic ? 1 : 0 }
   })
 }
 
@@ -56,7 +65,7 @@ export function movePhotosToAlbum({ sourceAlbumId, albumId, photoIds }) {
   return request({
     url: '/album/photos/move',
     method: 'post',
-    data: { sourceAlbumId, albumId, photoIds }
+    data: { sourceAlbumId, targetAlbumId: albumId, photoIds }
   })
 }
 
@@ -65,6 +74,6 @@ export function copyPhotosToAlbum({ sourceAlbumId, albumId, photoIds }) {
   return request({
     url: '/album/photos/copy',
     method: 'post',
-    data: { sourceAlbumId, albumId, photoIds }
+    data: { sourceAlbumId, targetAlbumIds: [albumId], photoIds }
   })
 }

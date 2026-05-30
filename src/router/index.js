@@ -1,6 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import PhotoPage from '../view/PhotoPage.vue'
 import AlbumPage from '../view/AlbumPage.vue'
+import AlbumList from '../view/AlbumList.vue'
+import AlbumDetail from '../view/AlbumDetail.vue'
 import RecyclePage from '../view/RecyclePage.vue'
 import LoginRegister from '../view/LoginRegister.vue'
 import ReRegister from '../view/ReRegister.vue'
@@ -8,13 +10,20 @@ import ReRegister from '../view/ReRegister.vue'
 const routes = [
   { path: '/', redirect: '/photo' },
 
-  { path: '/photo', name: 'photo', component: PhotoPage},
-  { path: '/album', name: 'album', component: AlbumPage},
-  { path: '/recycle', name: 'recycle', component: RecyclePage},
+  { path: '/photo', name: 'photo', component: PhotoPage },
+  {
+    path: '/album',
+    component: AlbumPage,
+    children: [
+      { path: '', name: 'album', component: AlbumList },
+      { path: ':id', name: 'album-detail', component: AlbumDetail }
+    ]
+  },
+  { path: '/recycle', name: 'recycle', component: RecyclePage },
 
-  { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true }},
-  { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true }},
-  { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true }}
+  { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true } },
+  { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true } },
+  { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true } }
 ]
 
 const router = createRouter({

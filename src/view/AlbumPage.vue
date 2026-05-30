@@ -1,3 +1,3 @@
 <template>
-  <div>Album Page</div>
+  <router-view />
 </template>

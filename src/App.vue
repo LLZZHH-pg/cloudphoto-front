@@ -1,5 +1,5 @@
 <script setup>
-import { computed, provide,  ref } from 'vue'
+import { computed, provide, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderBase from './components/HeaderBase.vue'
 import UserMenu from './components/UserMenu.vue'
@@ -9,6 +9,7 @@ import SoftDeleteButton from './components/SoftDeleteButton.vue'
 import TrashRestoreButton from './components/TrashRestoreButton.vue'
 import TrashHardDeleteButton from './components/TrashHardDeleteButton.vue'
 import AddToAlbum from './components/AddToAlbum.vue'
+import RemoveFromAlbumButton from './components/RemoveFromAlbumButton.vue'
 import logoUrl from './assets/logo.svg'
 
 const tabPosition = ref('left')
@@ -20,13 +21,17 @@ const isFullScreen = computed(() => route.meta?.fullScreen)
 const refreshKey = ref(0)
 provide('refreshKey', refreshKey)
 
-const showDownloadBtn = computed(() => {
-  return route.name === 'photo' || route.name === 'album'
-})
+/** 照片页工具栏（添加到影集、下载、软删除） */
+const showPhotoToolBtns = computed(() => route.name === 'photo')
 
-const showTrashBtns = computed(() => {
-  return route.name === 'recycle'
-})
+/** 回收站工具栏（恢复、彻底删除） */
+const showTrashBtns = computed(() => route.name === 'recycle')
+
+/** 影集详情页工具栏（移出、移动、复制、下载） */
+const showAlbumDetailBtns = computed(() => route.name === 'album-detail')
+
+/** 当前影集 ID（仅在影集详情页有效） */
+const currentAlbumId = computed(() => Number(route.params.id) || 0)
 
 const activeTab = computed({
   get: () => {
@@ -48,7 +53,7 @@ function onUploadSuccess() {
 }
 </script>
 
-<template> 
+<template>
   <router-view v-if="isFullScreen" />
 
   <div v-else class="common-layout">
@@ -56,11 +61,19 @@ function onUploadSuccess() {
 
       <HeaderBase>
         <template #tools>
-          <AddToAlbum v-if="showDownloadBtn" />
-          <DownloadButton v-if="showDownloadBtn" />
-          <SoftDeleteButton v-if="showDownloadBtn" />
+          <!-- 照片页工具栏 -->
+          <AddToAlbum v-if="showPhotoToolBtns" />
+          <DownloadButton v-if="showPhotoToolBtns" />
+          <SoftDeleteButton v-if="showPhotoToolBtns" />
+
+          <!-- 回收站工具栏 -->
           <TrashRestoreButton v-if="showTrashBtns" />
           <TrashHardDeleteButton v-if="showTrashBtns" />
+
+          <!-- 影集详情页工具栏 -->
+          <AddToAlbum v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
+          <RemoveFromAlbumButton v-if="showAlbumDetailBtns" />
+          <DownloadButton v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
         </template>
       </HeaderBase>
 
@@ -76,7 +89,7 @@ function onUploadSuccess() {
           </div>
         </div>
       </el-header>
-      
+
       <el-tabs v-model="activeTab" :tab-position="tabPosition" style="height:95vh" class="main-tabs">
         <el-tab-pane name="photo">
           <template #label>
@@ -106,7 +119,6 @@ function onUploadSuccess() {
           <router-view v-if="activeTab === 'recycle'" />
         </el-tab-pane>
       </el-tabs>
-
 
     </el-container>
   </div>

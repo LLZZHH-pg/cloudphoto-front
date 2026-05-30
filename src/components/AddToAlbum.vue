@@ -1,8 +1,9 @@
 <script setup>
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { FolderAdd } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
+import { useAlbumSelection } from '../composables/useAlbumSelection'
 import {
   getAlbumList,
   addPhotosToAlbum,
@@ -25,8 +26,19 @@ const props = defineProps({
 
 const emit = defineEmits(['success'])
 
-// ===== 选择状态 =====
-const { getSelectedIds, selectedCount } = usePhotoSelection()
+// ===== 选择状态（根据 context 自动选用正确的 composable） =====
+const photoSelection = usePhotoSelection()
+const albumSelection = useAlbumSelection()
+
+const isPhotoPage = computed(() => props.sourceAlbumId === -1)
+
+const selectedCount = computed(() =>
+  isPhotoPage.value ? photoSelection.selectedCount.value : albumSelection.selectedCount.value
+)
+
+function getSelectedIds() {
+  return isPhotoPage.value ? photoSelection.getSelectedIds() : albumSelection.getSelectedIds()
+}
 
 // ===== 影集列表 =====
 const albumList = ref([])
@@ -44,7 +56,8 @@ async function fetchAlbums() {
   if (albumList.value.length > 0) return   // 已加载过，不重复请求
   loadingAlbums.value = true
   try {
-    albumList.value = await getAlbumList()
+    const data = await getAlbumList()
+    albumList.value = (data || []).filter(a => a.id !== albumSelection.albumId.value)
   } catch {
     ElMessage.error('获取影集列表失败')
   } finally {

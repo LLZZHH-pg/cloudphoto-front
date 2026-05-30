@@ -1,10 +1,27 @@
 <script setup>
+import { computed } from 'vue'
 import { Download } from '@element-plus/icons-vue'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
+import { useAlbumSelection } from '../composables/useAlbumSelection'
 import { batchDownloadUrl } from '../api/photo'
 import { ElMessage } from 'element-plus'
 
-const { getSelectedPhotos, selectedCount } = usePhotoSelection()
+const props = defineProps({
+  sourceAlbumId: { type: Number, default: -1 }
+})
+
+const photoSelection = usePhotoSelection()
+const albumSelection = useAlbumSelection()
+
+const isPhotoPage = computed(() => props.sourceAlbumId === -1)
+
+const selectedCount = computed(() =>
+  isPhotoPage.value ? photoSelection.selectedCount.value : albumSelection.selectedCount.value
+)
+
+function getSelectedPhotos() {
+  return isPhotoPage.value ? photoSelection.getSelectedPhotos() : albumSelection.getSelectedPhotos()
+}
 
 async function downloadSelected() {
   if (selectedCount.value === 0) {
