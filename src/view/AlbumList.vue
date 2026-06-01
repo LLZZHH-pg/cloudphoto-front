@@ -156,8 +156,8 @@ onMounted(() => {
 /* ===== 网格布局 ===== */
 .album-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 10px;
 }
 
 /* ===== 新建影集卡片 ===== */

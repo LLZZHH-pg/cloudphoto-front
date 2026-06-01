@@ -156,7 +156,7 @@ function onDelete() {
 .album-count-badge {
   position: absolute;
   top: 8px;
-  right: 8px;
+  left: 8px;
   background: rgba(0, 0, 0, 0.55);
   color: #fff;
   font-size: 12px;
