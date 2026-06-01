@@ -1,5 +1,4 @@
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { useHeaderBase } from './useHeaderBase'
 
 // ===== 模块级共享状态（影集详情页专用，与照片页/回收站页完全隔离） =====
@@ -9,8 +8,6 @@ const albumId = ref(null)
 
 const { isVisible, show: showHeader, hide: hideHeader } = useHeaderBase()
 
-// ===== 模块级标志：确保路由监听只注册一次 =====
-let _routeWatchInitialized = false
 
 // ===== 工具函数：从 previewUrl 推导存储 URL =====
 function deriveStorageUrl(previewUrl) {
@@ -35,14 +32,6 @@ function clearSelection() {
 
 // ===== 导出 composable =====
 export function useAlbumSelection() {
-  // 路由切换时自动退出选择状态（只注册一次）
-  if (!_routeWatchInitialized) {
-    _routeWatchInitialized = true
-    const route = useRoute()
-    watch(() => route.name, () => {
-      clearSelection()
-    })
-  }
 
   const selectedCount = computed(() => selectedMap.value.size)
 

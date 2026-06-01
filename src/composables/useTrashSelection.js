@@ -15,18 +15,6 @@ function deriveStorageUrl(previewUrl) {
   return previewUrl.replace(/-normal|-thumb/, '').split('?')[0]
 }
 
-// ===== 路由切换时自动清除选择 =====
-let _routeWatchInitialized = false
-
-function ensureRouteWatch() {
-  if (_routeWatchInitialized) return
-  _routeWatchInitialized = true
-  const route = useRoute()
-  watch(() => route.name, () => {
-    clearSelection()
-  })
-}
-
 // ===== HeaderBase 关闭按钮 → 清除选择 =====
 watch(headerVisible, (newVal, oldVal) => {
   if (!newVal && oldVal) {
@@ -43,7 +31,6 @@ function clearSelection() {
 
 // ===== 导出 composable =====
 export function useTrashSelection() {
-  ensureRouteWatch()
 
   const selectedCount = computed(() => selectedMap.value.size)
 

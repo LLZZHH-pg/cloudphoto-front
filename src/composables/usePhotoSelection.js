@@ -1,5 +1,4 @@
 import { ref, computed, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { useHeaderBase } from './useHeaderBase'
 
 // ===== 模块级共享状态 =====
@@ -33,14 +32,6 @@ watch(isVisible, (newVal, oldVal) => {
 
 // ===== 导出 composable =====
 export function usePhotoSelection() {
-  // 路由切换时自动退出选择状态（只注册一次）
-  if (!_routeWatchInitialized) {
-    _routeWatchInitialized = true
-    const route = useRoute()
-    watch(() => route.name, () => {
-      clearSelection()
-    })
-  }
 
   const selectedCount = computed(() => selectedMap.value.size)
 
@@ -115,6 +106,7 @@ export function usePhotoSelection() {
     isSelected,
     isDateAllSelected,
     getSelectedPhotos,
-    getSelectedIds
+    getSelectedIds,
+    clearSelection
   }
 }

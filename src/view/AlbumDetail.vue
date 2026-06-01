@@ -40,7 +40,7 @@ const viewerVisible = ref(false)
 const viewerIndex = ref(0)
 
 /**
- * 按 shotTime 分组（与回收站页相同的逻辑）
+ * 按 shotTime 分组
  */
 function groupByDate(photoList) {
   if (!photoList || photoList.length === 0) return []

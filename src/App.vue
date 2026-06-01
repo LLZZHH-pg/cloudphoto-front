@@ -12,6 +12,11 @@ import AddToAlbum from './components/AddToAlbum.vue'
 import RemoveFromAlbumButton from './components/RemoveFromAlbumButton.vue'
 import logoUrl from './assets/logo.svg'
 
+import { useHeaderBase } from './composables/useHeaderBase'
+import { usePhotoSelection } from './composables/usePhotoSelection'
+import { useAlbumSelection } from './composables/useAlbumSelection'
+import { useTrashSelection } from './composables/useTrashSelection'
+
 const tabPosition = ref('left')
 const route = useRoute()
 const router = useRouter()
@@ -33,6 +38,11 @@ const showAlbumDetailBtns = computed(() => route.name === 'album-detail')
 /** 当前影集 ID（仅在影集详情页有效） */
 const currentAlbumId = computed(() => Number(route.params.id) || 0)
 
+const { hide: hideHeader } = useHeaderBase()
+const { clearSelection: clearPhoto } = usePhotoSelection()
+const { clearSelection: clearAlbum } = useAlbumSelection()
+const { clearSelection: clearTrash } = useTrashSelection()
+
 const activeTab = computed({
   get: () => {
     if (route.path.startsWith('/photo')) return 'photo'
@@ -40,7 +50,13 @@ const activeTab = computed({
     if (route.path.startsWith('/recycle')) return 'recycle'
     return 'photo'
   },
-  set: (name) => router.push({ name })
+    set: (name) => {
+    hideHeader()
+    clearPhoto()
+    clearAlbum()
+    clearTrash()
+    router.push({ name })
+  }
 })
 
 function onUploadSuccess() {

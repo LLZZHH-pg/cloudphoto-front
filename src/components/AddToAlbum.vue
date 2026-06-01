@@ -51,13 +51,18 @@ const dropdownVisible = ref(false)
 const actionDialogVisible = ref(false)
 const targetAlbum = ref(null)
 
-// ===== 获取影集列表（首次展开下拉时加载） =====
+// ===== 获取影集列表 =====
 async function fetchAlbums() {
-  if (albumList.value.length > 0) return   // 已加载过，不重复请求
   loadingAlbums.value = true
   try {
     const data = await getAlbumList()
-    albumList.value = (data || []).filter(a => a.id !== albumSelection.albumId.value)
+    if (props.sourceAlbumId !== -1) {
+      // 影集页：排除当前影集
+      albumList.value = (data || []).filter(a => a.id !== props.sourceAlbumId)
+    } else {
+      // 照片页：不过滤
+      albumList.value = data || []
+    }
   } catch {
     ElMessage.error('获取影集列表失败')
   } finally {
