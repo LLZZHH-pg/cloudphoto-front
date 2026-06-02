@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, watch, onMounted, onUnmounted } from 'vue'
 import { getPhotoDetail } from '../api/photo'
 import { Close, ArrowLeft, ArrowRight, InfoFilled } from '@element-plus/icons-vue'
 
@@ -30,6 +30,15 @@ const detailVisible = ref(false)
 const photoDetail = ref(null)
 const detailLoading = ref(false)
 
+const collapsedSections = reactive({
+  basic: false,   // 基本信息（默认展开）
+  exif: true     // EXIF 信息（默认关闭）
+})
+/** 折叠分组 */
+function toggleSection(section) {
+  collapsedSections[section] = !collapsedSections[section]
+}
+
 /** 统一获取详情 */
 async function fetchDetail() {
   const photo = currentPhoto.value
@@ -37,7 +46,7 @@ async function fetchDetail() {
     photoDetail.value = null
     return
   }
-  // ★ 清空旧数据，避免闪现上一张的图
+  // 清空旧数据，避免闪现上一张的图
   photoDetail.value = null
   detailLoading.value = true
   try {
@@ -60,7 +69,7 @@ watch(() => props.modelValue, (val) => {
       fetchDetail()
     }
   } else {
-    // ★ 关闭时清空所有数据
+    // 关闭时清空所有数据
     photoDetail.value = null
     detailLoading.value = false
   }
@@ -73,7 +82,7 @@ watch(currentIndex, (newIdx, oldIdx) => {
   }
 })
 
-// ★ 只用详情接口的 URL，不降级到缩略图
+// 只用详情接口的 URL，不降级到缩略图
 const displayUrl = computed(() => photoDetail.value?.previewUrl || '')
 
 /** 打开详细信息弹窗 */
@@ -173,7 +182,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <el-dialog
           v-model="detailVisible"
           title="文件信息"
-          width="520px"
+          width="450px"
           :close-on-click-modal="false"
           append-to-body
           destroy-on-close
@@ -187,31 +196,52 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <!-- 基本信息 -->
           <template v-else-if="photoDetail">
             <div class="detail-section">
-              <h4>基本信息</h4>
-              <div class="detail-row">
-                <span class="detail-label">文件名</span>
-                <span class="detail-value">{{ photoDetail.fileName }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="detail-label">拍摄时间</span>
-                <span class="detail-value">{{ photoDetail.shotTime || '未知' }}</span>
-              </div>
-              <div class="detail-row" v-if="photoDetail.deleteTime">
-                <span class="detail-label">删除时间</span>
-                <span class="detail-value">{{ photoDetail.deleteTime }}</span>
+              <h4 class="section-header" @click="toggleSection('basic')">
+                <el-icon class="section-arrow" :class="{ collapsed: collapsedSections.basic }">
+                  <ArrowRight v-if="collapsedSections.basic" />
+                  <ArrowDown v-else />
+                </el-icon>
+                基本信息
+              </h4>
+              <div v-show="!collapsedSections.basic" class="section-body">
+                <div class="detail-row">
+                  <span class="detail-label">文件名</span>
+                  <span class="detail-value">{{ photoDetail.fileName }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">拍摄时间</span>
+                  <span class="detail-value">{{ photoDetail.shotTime?.replace('T', ' ') || '未知' }}</span>
+                </div>
+                <!-- category 字段 -->
+                <div class="detail-row" v-if="photoDetail.category">
+                  <span class="detail-label">分类</span>
+                  <span class="detail-value">{{ photoDetail.category }}</span>
+                </div>
+                <div class="detail-row" v-if="photoDetail.deleteTime">
+                  <span class="detail-label">删除时间</span>
+                  <span class="detail-value">{{ photoDetail.deleteTime?.replace('T', ' ') || '未知' }}</span>
+                </div>
               </div>
             </div>
 
             <!-- EXIF 信息 -->
             <div class="detail-section" v-if="exifEntries.length > 0">
-              <h4>EXIF 信息</h4>
-              <div
-                class="detail-row"
-                v-for="[key, val] in exifEntries"
-                :key="key"
-              >
-                <span class="detail-label">{{ key }}</span>
-                <span class="detail-value">{{ val }}</span>
+              <h4 class="section-header" @click="toggleSection('exif')">
+                <el-icon class="section-arrow" :class="{ collapsed: collapsedSections.exif }">
+                  <ArrowRight v-if="collapsedSections.exif" />
+                  <ArrowDown v-else />
+                </el-icon>
+                EXIF 信息
+              </h4>
+              <div v-show="!collapsedSections.exif" class="section-body">
+                <div
+                  class="detail-row"
+                  v-for="[key, val] in exifEntries"
+                  :key="key"
+                >
+                  <span class="detail-label">{{ key }}</span>
+                  <span class="detail-value">{{ val }}</span>
+                </div>
               </div>
             </div>
           </template>
@@ -274,7 +304,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
   -webkit-user-drag: none;
 }
 .viewer-image-loading {
-  color: rgba(255, 255, 255, 0.5);
+  color: rgb(255, 255, 255);
 }
 .viewer-image-error {
   color: rgba(255, 255, 255, 0.4);
@@ -342,5 +372,25 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
 .detail-value {
   color: #303133;
   word-break: break-all;
+}
+/* 可折叠标题 */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  user-select: none;
+  margin: 0 0 10px 0;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #ebeef5;
+  font-size: 15px;
+  color: #303133;
+}
+.section-header:hover {
+  color: #409eff;
+}
+.section-arrow {
+  transition: transform 0.2s;
+  font-size: 12px;
 }
 </style>
