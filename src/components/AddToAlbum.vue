@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref ,inject} from 'vue'
 import { FolderAdd } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
@@ -24,7 +24,9 @@ const props = defineProps({
   }
 })
 
-const emit = defineEmits(['success'])
+const refreshKey = inject('refreshKey')
+
+const dropdownRef = ref(null)
 
 // ===== 选择状态（根据 context 自动选用正确的 composable） =====
 const photoSelection = usePhotoSelection()
@@ -109,7 +111,8 @@ async function doAddPhotos(albumId) {
       photoIds
     })
     ElMessage.success(`已将 ${photoIds.length} 张照片添加到影集`)
-    emit('success')
+    dropdownRef.value?.handleClose()
+    refreshKey.value++
   } catch {
     ElMessage.error('操作失败，请重试')
   }
@@ -128,7 +131,8 @@ async function handleMove() {
     ElMessage.success(`已将 ${photoIds.length} 张照片移动到影集「${targetAlbum.value.name}」`)
     actionDialogVisible.value = false
     targetAlbum.value = null
-    emit('success')
+    dropdownRef.value?.handleClose()
+    refreshKey.value++
   } catch {
     ElMessage.error('移动失败，请重试')
   }
@@ -147,7 +151,8 @@ async function handleCopy() {
     ElMessage.success(`已将 ${photoIds.length} 张照片复制到影集「${targetAlbum.value.name}」`)
     actionDialogVisible.value = false
     targetAlbum.value = null
-    emit('success')
+    dropdownRef.value?.handleClose()
+    refreshKey.value++
   } catch {
     ElMessage.error('复制失败，请重试')
   }

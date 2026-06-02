@@ -46,3 +46,20 @@ export function batchDownloadUrl(photoIds) {
     data: photoIds
   })
 }
+
+// 获取所有分类
+export function getCategories() {
+  return request({
+    url: '/media/categories',
+    method: 'get'
+  })
+}
+
+// 批量更新照片分类
+export function updateCategory(ids, category) {
+  return request({
+    url: '/media/category/update',
+    method: 'post',
+    data: { ids, category }
+  })
+}

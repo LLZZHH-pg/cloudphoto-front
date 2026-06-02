@@ -1,5 +1,5 @@
 <script setup>
-import { computed, provide, ref } from 'vue'
+import { computed, provide, ref ,watch} from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import HeaderBase from './components/HeaderBase.vue'
 import UserMenu from './components/UserMenu.vue'
@@ -10,6 +10,7 @@ import TrashRestoreButton from './components/TrashRestoreButton.vue'
 import TrashHardDeleteButton from './components/TrashHardDeleteButton.vue'
 import AddToAlbum from './components/AddToAlbum.vue'
 import RemoveFromAlbumButton from './components/RemoveFromAlbumButton.vue'
+import UpdateCategory from './components/UpdateCategory.vue'
 import logoUrl from './assets/logo.svg'
 
 import { useHeaderBase } from './composables/useHeaderBase'
@@ -58,6 +59,12 @@ const activeTab = computed({
     router.push({ name })
   }
 })
+watch(() => route.name, () => {
+  hideHeader()
+  clearPhoto()
+  clearAlbum()
+  clearTrash()
+})
 
 function onUploadSuccess() {
   // 如果不在照片页，切过去
@@ -81,6 +88,7 @@ function onUploadSuccess() {
           <AddToAlbum v-if="showPhotoToolBtns" />
           <DownloadButton v-if="showPhotoToolBtns" />
           <SoftDeleteButton v-if="showPhotoToolBtns" />
+          <UpdateCategory v-if="showPhotoToolBtns" />
 
           <!-- 回收站工具栏 -->
           <TrashRestoreButton v-if="showTrashBtns" />
@@ -90,6 +98,7 @@ function onUploadSuccess() {
           <AddToAlbum v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
           <RemoveFromAlbumButton v-if="showAlbumDetailBtns" />
           <DownloadButton v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
+          <UpdateCategory v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
         </template>
       </HeaderBase>
 
