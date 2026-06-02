@@ -298,9 +298,8 @@ async function handleRegister() {
   height: 6px;
   border-radius: 50%;
   background: rgba(255,255,255,0.7);
-  opacity: 0.5;
+  opacity: 0.8;
 }
-.side-dots span:first-child { opacity: 1; }
 
 /* 装饰圆 */
 .side-decoration { position: absolute; inset: 0; z-index: 1; }
