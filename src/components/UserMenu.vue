@@ -16,6 +16,11 @@ function handleDarkChange(val) {
 function onMenuShow() {
   refreshUserInfo()
 }
+
+function openPlansPage() {
+  const url = router.resolve({ name: 'plans' }).href
+  window.open(url, '_blank')
+}
 </script>
 
 <template>
@@ -79,7 +84,19 @@ function onMenuShow() {
         </el-button>
       </div>
 
-      <!-- 4. 退出登录按钮 -->
+      <!-- 4. 套餐订阅按钮 -->
+      <div class="menu-section">
+        <el-button
+          text
+          style="width: 100%; justify-content: flex-start;"
+          @click="openPlansPage"
+        >
+          <el-icon :size="16"><Goods /></el-icon>
+          <span>套餐订阅</span>
+        </el-button>
+      </div>
+
+      <!-- 5. 退出登录按钮 -->
       <div class="menu-section">
         <el-button
           text

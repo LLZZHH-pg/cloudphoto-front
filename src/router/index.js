@@ -6,6 +6,7 @@ import AlbumDetail from '../view/AlbumDetail.vue'
 import RecyclePage from '../view/RecyclePage.vue'
 import LoginRegister from '../view/LoginRegister.vue'
 import ReRegister from '../view/ReRegister.vue'
+import PlansPage from '../view/PlansPage.vue'
 
 const routes = [
   { path: '/', redirect: '/photo' },
@@ -23,7 +24,9 @@ const routes = [
 
   { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true } },
   { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true } },
-  { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true } }
+  
+  { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true } },
+  { path: '/plans', name: 'plans', component: PlansPage, meta: { fullScreen: true } }
 ]
 
 const router = createRouter({

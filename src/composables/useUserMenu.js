@@ -3,14 +3,14 @@ import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { getUserInfo } from '../api/user'
 
-// 模块级共享状态，所有导入者共享
-const userInfo = reactive({
+export const userInfo = reactive({
   userId: null,
   nam: '',
   tel: '',
   eml: '',
   usedstorage: 0,
-  totalstorage: 0
+  totalstorage: 0,
+  recycledays: 30
 })
 
 // 初始化：从 localStorage 读取
@@ -54,7 +54,6 @@ export function useUserInfo() {
 
 async function refreshUserInfo() {
     const token = localStorage.getItem('token')
-    // 加上 token 检查：没登录就不调 API
     if (!token || !userInfo.userId) {
       loadFromStorage()
       return

@@ -34,3 +34,20 @@ export function updateUserInfo({ nam, pas, tel, eml }) {
     data: { nam, pas, tel, eml }
   })
 }
+
+// 获取套餐列表
+export function getPlansList() {
+  return request({
+    url: '/user/plans/list',
+    method: 'get'
+  })
+}
+
+// 订阅套餐
+export function subscribePlan(planId) {
+  return request({
+    url: '/user/plans/subscribe',
+    method: 'post',
+    data: { planId }
+  })
+}

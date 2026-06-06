@@ -1,6 +1,7 @@
 <script setup>
-import { computed, ref } from 'vue'
+import { computed, ref ,onMounted} from 'vue'
 import PhotoBox from './PhotoBox.vue'
+import { getUserInfo } from '../api/user'
 
 const props = defineProps({
   picture: {
@@ -21,15 +22,15 @@ const props = defineProps({
 const emit = defineEmits(['toggle'])
 
 const hover = ref(false)
+const recycledays = ref(30)
 
 function onToggle() {
   emit('toggle', props.picture)
 }
 
 /**
- * 计算距离 30 天自动清理的剩余时间
- * @param {string} deleteTime - ISO 时间字符串
- * @returns {{ text: string, urgent: boolean }}
+ * 计算距离自动清理的剩余时间
+ * 公式：recycledays - (当前时间 - 删除时间)
  */
 const countdown = computed(() => {
   if (!props.picture.deleteTime) {
@@ -37,23 +38,35 @@ const countdown = computed(() => {
   }
 
   const deleteDate = new Date(props.picture.deleteTime)
-  const autoCleanDate = new Date(deleteDate.getTime() + 30 * 24 * 60 * 60 * 1000)
   const now = new Date()
-  const diffMs = autoCleanDate.getTime() - now.getTime()
+  const diffMs = now.getTime() - deleteDate.getTime()        // 已经过了多久
+  const daysPassed = diffMs / (1000 * 60 * 60 * 24)           // 已过天数
+  const remainingDays = recycledays.value - daysPassed      // 使用 recycledays
 
-  if (diffMs <= 0) {
+  if (remainingDays <= 0) {
     return { text: '即将清理', urgent: true }
   }
 
-  const totalHours = diffMs / (1000 * 60 * 60)
+  const totalHours = remainingDays * 24
 
   if (totalHours < 24) {
     const hours = Math.max(1, Math.floor(totalHours))
     return { text: `剩余 ${hours} 小时`, urgent: true }
   }
 
-  const days = Math.floor(totalHours / 24)
+  const days = Math.floor(remainingDays)
   return { text: `剩余 ${days} 天`, urgent: days <= 3 }
+})
+
+onMounted(async () => {
+  try {
+    const data = await getUserInfo()
+    if (data && data.recycledays) {
+      recycledays.value = data.recycledays
+    }
+  } catch (e) {
+    console.error('获取 recycledays 失败:', e)
+  }
 })
 </script>
 
