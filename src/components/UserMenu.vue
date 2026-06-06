@@ -1,15 +1,20 @@
 <script setup>
+import { onMounted } from 'vue'
 import { useUserInfo } from '../composables/useUserMenu'
 import { useDarkMode } from '../composables/useDarkMode'
 import { useRouter } from 'vue-router'
 
-const { username, storagePercent, storageText, logout } = useUserInfo()
+const { username, storagePercent, storageText, logout ,refreshUserInfo} = useUserInfo()
 const { isDark } = useDarkMode()
 const router = useRouter()
 
 function handleDarkChange(val) {
   isDark.value = val
   localStorage.setItem('darkMode', val)
+}
+
+function onMenuShow() {
+  refreshUserInfo()
 }
 </script>
 
@@ -20,6 +25,7 @@ function handleDarkChange(val) {
     trigger="click"
     :show-arrow="false"
     popper-class="user-menu-popover"
+    @show="onMenuShow"
   >
     <!-- 触发器：圆角矩形用户名按钮 -->
     <template #reference>

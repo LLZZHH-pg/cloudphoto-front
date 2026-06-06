@@ -52,15 +52,22 @@ export function useUserInfo() {
     return `${used} / ${total}`
   })
 
-  async function refreshUserInfo() {
-    if (!userInfo.userId) {
+async function refreshUserInfo() {
+    const token = localStorage.getItem('token')
+    // 加上 token 检查：没登录就不调 API
+    if (!token || !userInfo.userId) {
       loadFromStorage()
       return
     }
-    const data = await getUserInfo()
-    Object.assign(userInfo, data)
-    localStorage.setItem('userInfo', JSON.stringify(data))
-  }
+    try {
+      const data = await getUserInfo()
+      Object.assign(userInfo, data)
+      localStorage.setItem('userInfo', JSON.stringify(data))
+    } catch (e) {
+      // 静默失败
+      console.error('刷新用户信息失败', e)
+    }
+}
 
   function logout() {
     localStorage.removeItem('token')
