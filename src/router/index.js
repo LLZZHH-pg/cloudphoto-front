@@ -7,6 +7,7 @@ import RecyclePage from '../view/RecyclePage.vue'
 import LoginRegister from '../view/LoginRegister.vue'
 import ReRegister from '../view/ReRegister.vue'
 import PlansPage from '../view/PlansPage.vue'
+import AdminPage from '../view/AdminPage.vue'
 
 const routes = [
   { path: '/', redirect: '/photo' },
@@ -24,9 +25,11 @@ const routes = [
 
   { path: '/login', name: 'login', component: LoginRegister, meta: { fullScreen: true } },
   { path: '/register', name: 'register', component: LoginRegister, meta: { fullScreen: true } },
-  
+
   { path: '/reregister', name: 'reregister', component: ReRegister, meta: { fullScreen: true } },
-  { path: '/plans', name: 'plans', component: PlansPage, meta: { fullScreen: true } }
+  { path: '/plans', name: 'plans', component: PlansPage, meta: { fullScreen: true } },
+
+  { path: '/admin', name: 'admin', component: AdminPage, meta: { fullScreen: true, requiresAdmin: true } }
 ]
 
 const router = createRouter({
@@ -40,8 +43,16 @@ const WHITE_LIST = ['login', 'register']  // 白名单路由
 
 router.beforeEach((to, from, next) => {
   const token = localStorage.getItem('token')
+  const adminToken = localStorage.getItem('adminToken')
 
-  // 1. 有 token → 已登录，允许访问任何路由
+  if (to.meta?.requiresAdmin) {
+    if (adminToken) {
+      return next()
+    }
+    return next({ name: 'login' })
+  }
+
+  // 1. 有token允许访问
   if (token) {
     // 如果已登录还去 login/register，重定向到首页
     if (to.name === 'login' || to.name === 'register') {
@@ -50,8 +61,7 @@ router.beforeEach((to, from, next) => {
     return next()
   }
 
-  // 2. 无 token → 未登录
-  // 如果目标在白名单中，允许访问
+  // 2. 无token如果目标在白名单中，允许访问
   if (WHITE_LIST.includes(to.name)) {
     return next()
   }

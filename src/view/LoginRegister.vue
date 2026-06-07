@@ -3,6 +3,7 @@ import { ref, reactive, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { login, register } from '../api/user'
+import { authLogin } from '../api/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -16,6 +17,8 @@ const activeTab = computed({
 })
 
 const loading = ref(false)
+
+const isAdminMode = ref(false)
 
 const loginForm = reactive({ acc: '', pas: '' })
 const loginRules = {
@@ -32,6 +35,13 @@ const registerRules = {
   eml: [{ required: false }]
 }
 const registerFormRef = ref(null)
+
+const adminForm = reactive({ acc: '', pas: '' })
+const adminFormRef = ref(null)
+const adminRules = {
+  acc: [{ required: true, message: '请输入管理员账号', trigger: 'blur' }],
+  pas: [{ required: true, message: '请输入密码', trigger: 'blur' }]
+}
 
 async function handleLogin() {
   const valid = await loginFormRef.value.validate().catch(() => false)
@@ -70,12 +80,29 @@ async function handleRegister() {
     loading.value = false
   }
 }
+
+async function handleAdminLogin() {
+  const valid = await adminFormRef.value.validate().catch(() => false)
+  if (!valid) return
+  loading.value = true
+  try {
+    const data = await authLogin({ acc: adminForm.acc, pas: adminForm.pas })
+    localStorage.setItem('adminToken', data.token)
+    localStorage.setItem('adminInfo', JSON.stringify(data.userInfo))
+    ElMessage.success('管理员登录成功')
+    router.push({ name: 'admin' })
+  } catch (e) {
+    ElMessage.error(e.message)
+  } finally {
+    loading.value = false
+  }
+}
 </script>
 
 <template>
   <div class="auth-wrapper">
     <!-- 左侧装饰区 -->
-    <div class="auth-side">
+    <div class="auth-side" :class="{ 'admin-theme': isAdminMode }">
       <div class="side-content">
         <div class="brand-mark">
           <span class="brand-icon">✦</span>
@@ -84,6 +111,10 @@ async function handleRegister() {
         <p class="side-subtitle">安全、简洁、高效的照片云存储平台</p>
         <div class="side-dots">
           <span></span><span></span><span></span>
+        </div>
+        <div class="admin-toggle" @click="isAdminMode = !isAdminMode">
+          <span class="toggle-icon">{{ isAdminMode ? '◇' : '◆' }}</span>
+          <span class="toggle-text">{{ isAdminMode ? '返回用户登录' : '管理员登录' }}</span>
         </div>
       </div>
       <div class="side-decoration">
@@ -98,7 +129,7 @@ async function handleRegister() {
       <div class="auth-card">
 
         <!-- 登录区块 -->
-        <transition name="tab-fade" mode="out-in">
+        <transition v-if="!isAdminMode" name="tab-fade" mode="out-in">
           <div v-if="activeTab === 'login'" key="login" class="form-block">
             <div class="form-header">
               <h2 class="form-title">用户登录</h2>
@@ -219,6 +250,56 @@ async function handleRegister() {
           </div>
         </transition>
 
+        <!-- 管理员登录区块 -->
+        <div v-if="isAdminMode" key="admin" class="form-block">
+          <div class="form-header">
+            <h2 class="form-title">管理员登录</h2>
+            <p class="form-desc">请输入管理员账号和密码</p>
+          </div>
+          <el-form
+            ref="adminFormRef"
+            :model="adminForm"
+            :rules="adminRules"
+            label-width="0"
+            class="form"
+          >
+            <el-form-item prop="acc">
+              <label class="field-label">账号</label>
+              <el-input
+                v-model="adminForm.acc"
+                placeholder="请输入管理员账号"
+                size="large"
+                class="custom-input"
+              />
+            </el-form-item>
+            <el-form-item prop="pas">
+              <label class="field-label">密码</label>
+              <el-input
+                v-model="adminForm.pas"
+                type="password"
+                placeholder="请输入密码"
+                size="large"
+                show-password
+                class="custom-input"
+              />
+            </el-form-item>
+            <el-form-item class="btn-item">
+              <el-button
+                type="primary"
+                size="large"
+                :loading="loading"
+                class="submit-btn admin-submit-btn"
+                @click="handleAdminLogin"
+              >
+                管理员登录
+              </el-button>
+            </el-form-item>
+          </el-form>
+          <div class="form-footer">
+            <span class="switch-link" @click="isAdminMode = false">返回用户登录</span>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -332,9 +413,29 @@ async function handleRegister() {
   max-width: 400px;
 }
 
+/* ── 左侧深蓝色系（管理员模式） ── */
+.auth-side.admin-theme {
+  background: linear-gradient(160deg, #0a1628 0%, #1a2a5e 50%, #162044 100%);
+  transition: background 0.8s ease;
+}
+
+/* 管理员模式下的装饰圆颜色 */
+.auth-side.admin-theme .circle {
+  border-color: rgba(100, 140, 220, 0.25);
+}
+.auth-side.admin-theme .c3 {
+  background: rgba(60, 100, 180, 0.08);
+  border-color: rgba(100, 140, 220, 0.12);
+}
+
 /* ── 表单区块 ── */
 .form-block {
   animation: fadeUp 0.3s ease both;
+}
+
+/* ── 渐变过渡动画 ── */
+.auth-side {
+  transition: background 0.8s ease;
 }
 
 @keyframes fadeUp {
@@ -361,6 +462,36 @@ async function handleRegister() {
   margin: 0;
   letter-spacing: 0.5px;
 }
+
+/* ── 管理员切换按钮 ── */
+.admin-toggle {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  color: rgba(255,255,255,0.6);
+  font-size: 13px;
+  transition: color 0.3s;
+  user-select: none;
+}
+.admin-toggle:hover {
+  color: rgba(255,255,255,0.95);
+}
+.toggle-icon {
+  font-size: 16px;
+  transition: transform 0.4s ease;
+}
+
+/* 管理员提交按钮 */
+.admin-submit-btn {
+  background: linear-gradient(90deg, #1a3a6e 0%, #0d2137 100%) !important;
+}
+.admin-submit-btn:hover {
+  background: linear-gradient(90deg, #142d58 0%, #0a1928 100%) !important;
+}
+
 
 /* ── 字段标签 ── */
 .field-label {

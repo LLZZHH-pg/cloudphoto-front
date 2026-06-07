@@ -6,10 +6,18 @@ const request = axios.create({
   timeout: 10000
 })
 
-// 请求拦截器 - 加 token
+// 请求拦截器 - 加 token（区分普通用户和管理员）
 request.interceptors.request.use((config) => {
   const token = localStorage.getItem('token')
-  if (token) config.headers.Authorization = `Bearer ${token}`
+  const adminToken = localStorage.getItem('adminToken')
+
+  // 管理员接口使用 adminToken
+  if (config.url.includes('/auth/') && adminToken) {
+    config.headers.Authorization = `Bearer ${adminToken}`
+  } else if (token) {
+    config.headers.Authorization = `Bearer ${token}`
+  }
+
   return config
 })
 
@@ -25,6 +33,7 @@ request.interceptors.response.use(
     // token 过期 / 未授权
     if (code === 401) {
       localStorage.removeItem('token')
+      localStorage.removeItem('adminToken')
       window.location.href = '/login'
       return Promise.reject(new Error('登录已过期，请重新登录'))
     }
