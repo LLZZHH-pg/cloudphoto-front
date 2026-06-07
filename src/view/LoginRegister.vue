@@ -148,7 +148,6 @@ async function handleAdminLogin() {
                   v-model="loginForm.acc"
                   placeholder="请输入账号"
                   size="large"
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item prop="pas">
@@ -159,7 +158,6 @@ async function handleAdminLogin() {
                   placeholder="请输入密码"
                   size="large"
                   show-password
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item class="btn-item">
@@ -199,7 +197,6 @@ async function handleAdminLogin() {
                   v-model="registerForm.tel"
                   placeholder="请输入手机号"
                   size="large"
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item prop="pas">
@@ -210,7 +207,6 @@ async function handleAdminLogin() {
                   placeholder="请设置密码"
                   size="large"
                   show-password
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item prop="nam">
@@ -219,7 +215,6 @@ async function handleAdminLogin() {
                   v-model="registerForm.nam"
                   placeholder="请输入用户名"
                   size="large"
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item prop="eml">
@@ -228,7 +223,6 @@ async function handleAdminLogin() {
                   v-model="registerForm.eml"
                   placeholder="请输入邮箱地址"
                   size="large"
-                  class="custom-input"
                 />
               </el-form-item>
               <el-form-item class="btn-item">
@@ -269,7 +263,6 @@ async function handleAdminLogin() {
                 v-model="adminForm.acc"
                 placeholder="请输入管理员账号"
                 size="large"
-                class="custom-input"
               />
             </el-form-item>
             <el-form-item prop="pas">
@@ -280,7 +273,6 @@ async function handleAdminLogin() {
                 placeholder="请输入密码"
                 size="large"
                 show-password
-                class="custom-input"
               />
             </el-form-item>
             <el-form-item class="btn-item">
@@ -416,7 +408,6 @@ async function handleAdminLogin() {
 /* ── 左侧深蓝色系（管理员模式） ── */
 .auth-side.admin-theme {
   background: linear-gradient(160deg, #0a1628 0%, #1a2a5e 50%, #162044 100%);
-  transition: background 0.8s ease;
 }
 
 /* 管理员模式下的装饰圆颜色 */

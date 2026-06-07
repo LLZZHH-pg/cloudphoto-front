@@ -274,10 +274,6 @@ onMounted(() => {
   gap: 20px;
 }
 
-.admin-card {
-  border-radius: 6px;
-}
-
 .card-title {
   font-weight: 600;
   font-size: 15px;
@@ -316,11 +312,5 @@ onMounted(() => {
 .new-plan-row {
   border-bottom: none;
   padding-top: 4px;
-}
-
-/* ── 暗色模式：文字和图标白色 ── */
-:global(.dark) .admin-title,
-:global(.dark) .card-title {
-  color: #fff;
 }
 </style>
