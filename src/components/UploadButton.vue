@@ -9,6 +9,7 @@ const uploading = ref(false)
 const emit = defineEmits(['upload-success'])
 
 function handleClick() {
+  if (uploading.value) return
   fileInput.value?.click()
 }
 
@@ -48,9 +49,14 @@ async function handleFileChange(e) {
 </script>
 
 <template>
-  <div class="upload-btn" @click="handleClick">
-    <el-icon :size="20">
-      <Upload />
+  <div
+    class="upload-btn"
+    :class="{ 'is-uploading': uploading }"
+    @click="handleClick"
+  >
+    <el-icon :size="20" :class="{ 'is-loading': uploading }">
+      <Loading v-if="uploading" />
+      <Upload v-else />
     </el-icon>
     <input
       ref="fileInput"
@@ -58,6 +64,7 @@ async function handleFileChange(e) {
       multiple
       accept="image/*"
       style="display: none"
+      :disabled="uploading"
       @change="handleFileChange"
     />
   </div>
@@ -72,12 +79,27 @@ async function handleFileChange(e) {
   height: 34px;
   border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: background-color 0.2s, box-shadow 0.3s;
   color: var(--el-text-color-secondary);
 }
 
 .upload-btn:hover {
   background-color: var(--el-fill-color-light);
+}
+
+.upload-btn.is-uploading {
+  cursor: not-allowed;
+  color: var(--el-color-primary);
+  box-shadow: 0 0 0 2px rgba(var(--el-color-primary-rgb, 64, 158, 255), 0.3);
+}
+
+.is-loading {
+  animation: rotating 1.2s linear infinite;
+}
+
+@keyframes rotating {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* 暗色模式适配 */

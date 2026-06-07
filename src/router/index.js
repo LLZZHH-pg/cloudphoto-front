@@ -3,6 +3,7 @@ import PhotoPage from '../view/PhotoPage.vue'
 import AlbumPage from '../view/AlbumPage.vue'
 import AlbumList from '../view/AlbumList.vue'
 import AlbumDetail from '../view/AlbumDetail.vue'
+import SmartAlbumDetail from '../view/SmartAlbumDetail.vue'
 import RecyclePage from '../view/RecyclePage.vue'
 import LoginRegister from '../view/LoginRegister.vue'
 import ReRegister from '../view/ReRegister.vue'
@@ -18,6 +19,7 @@ const routes = [
     component: AlbumPage,
     children: [
       { path: '', name: 'album', component: AlbumList },
+      { path: 'smart/:category', name: 'smart-album', component: SmartAlbumDetail },
       { path: ':id', name: 'album-detail', component: AlbumDetail }
     ]
   },

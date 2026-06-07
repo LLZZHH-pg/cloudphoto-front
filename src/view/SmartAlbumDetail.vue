@@ -1,47 +1,35 @@
 <script setup>
-import { ref, computed, onMounted, inject, watch } from 'vue'
+import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { ArrowLeft, Edit, WarningFilled, PictureFilled, VideoPlay } from '@element-plus/icons-vue'
-import { getAlbumDetail } from '../api/album'
-import { useAlbumSelection } from '../composables/useAlbumSelection'
+import { ArrowLeft, PictureFilled, VideoPlay } from '@element-plus/icons-vue'
+import { getCategoryAllGroups } from '../api/photo'
+import { usePhotoSelection } from '../composables/usePhotoSelection'
 import PhotoBox from '../components/PhotoBox.vue'
 import PhotoSlideshow from '../components/PhotoSlideshow.vue'
 import CheckBox from '../components/CheckBox.vue'
-import AlbumCreateEdit from '../components/AlbumCreateEdit.vue'
 
 const route = useRoute()
 const router = useRouter()
 
-// ===== 选择状态（影集详情页专用） =====
 const {
-  setAlbumId,
   isSelecting,
   togglePhoto,
   toggleDateGroup,
   isSelected,
   isDateAllSelected
-} = useAlbumSelection()
-
-// ===== 数据状态 =====
-const album = ref(null)        // { id, name, description, coverUrl, photoCount, ... }
-const photos = ref([])         // 所有照片
-const dateGroups = ref([])     // 按日期分组
-const loading = ref(true)
-const notFound = ref(false)
-const hoveredDate = ref(null)
+} = usePhotoSelection()
 
 const refreshKey = inject('refreshKey', ref(0))
 
-// ===== 编辑弹窗 =====
-const editDialogVisible = ref(false)
+const category = ref('')
+const photos = ref([])
+const dateGroups = ref([])
+const loading = ref(true)
+const hoveredDate = ref(null)
 
-// ===== 幻灯片 =====
 const slideshowVisible = ref(false)
 const slideshowIndex = ref(0)
 
-/**
- * 按 shotTime 分组
- */
 function groupByDate(photoList) {
   if (!photoList || photoList.length === 0) return []
 
@@ -70,43 +58,28 @@ function groupByDate(photoList) {
     .sort((a, b) => b.date.localeCompare(a.date))
 }
 
-/**
- * 加载影集详情
- */
-async function loadDetail() {
-  loading.value = true
-  notFound.value = false
+async function loadPhotos() {
+  const cat = route.params.category
+  if (!cat) return
 
-  const id = Number(route.params.id)
-  if (!id || isNaN(id)) {
-    notFound.value = true
-    loading.value = false
-    return
-  }
+  category.value = decodeURIComponent(cat)
+  loading.value = true
 
   try {
-    const data = await getAlbumDetail(id)
-    album.value = data
-    photos.value = data.photos || []
+    const groups = await getCategoryAllGroups() || {}
+    photos.value = groups[category.value] || []
     dateGroups.value = groupByDate(photos.value)
-    setAlbumId(id)
   } catch (e) {
-    console.error('加载影集详情失败:', e)
-    // 404 等错误 → 显示"影集不存在"
-    if (e.message?.includes('404') || e.message?.includes('不存在')) {
-      notFound.value = true
-    } else {
-      notFound.value = true  // 通用错误也显示不存在
-    }
+    console.error('加载智能影集失败:', e)
+    photos.value = []
+    dateGroups.value = []
   } finally {
     loading.value = false
   }
 }
 
-/** 将所有照片展平为一个数组，供幻灯片翻页 */
 const allPhotos = computed(() => photos.value)
 
-/** 点击 PhotoBox 非复选框区域 → 打开幻灯片 */
 function openSlideshow(pictureid) {
   const idx = allPhotos.value.findIndex(p => p.pictureid === pictureid)
   if (idx !== -1) {
@@ -115,54 +88,36 @@ function openSlideshow(pictureid) {
   }
 }
 
-/** 从头播放幻灯片 */
 function startSlideshow() {
   slideshowIndex.value = 0
   slideshowVisible.value = true
 }
 
-/** 返回影集列表 */
 function goBack() {
   router.push({ name: 'album' })
 }
 
-/** 编辑成功后刷新 */
-function onEditSuccess() {
-  loadDetail()
-}
-
-// 路由参数变化时重新加载
-watch(() => route.params.id, () => {
-  loadDetail()
+watch(() => route.params.category, () => {
+  loadPhotos()
 })
 
-// 监听全局刷新信号（移动/复制/移出等操作触发）
 watch(refreshKey, () => {
-  loadDetail()
+  loadPhotos()
 })
 
 onMounted(() => {
-  loadDetail()
+  loadPhotos()
 })
 </script>
 
 <template>
-  <div class="album-detail-page">
-    <!-- ===== 加载中 ===== -->
+  <div class="smart-detail-page">
+    <!-- 加载中 -->
     <div v-if="loading" class="loading-state">
       <el-icon class="is-loading" :size="24"><Loading /></el-icon>
       <span>加载中...</span>
     </div>
 
-    <!-- ===== 影集不存在 ===== -->
-    <div v-else-if="notFound" class="not-found-state">
-      <el-icon :size="60"><WarningFilled /></el-icon>
-      <p>影集不存在</p>
-      <p class="not-found-hint">可能已被删除或链接无效</p>
-      <el-button @click="goBack">返回影集列表</el-button>
-    </div>
-
-    <!-- ===== 正常内容 ===== -->
     <template v-else>
       <!-- 顶部导航栏 -->
       <div class="detail-topbar">
@@ -173,13 +128,8 @@ onMounted(() => {
             class="back-btn"
             @click="goBack"
           />
-          <div class="topbar-info">
-            <div class="topbar-title-row">
-              <span class="topbar-title">{{ album?.name }}</span>
-              <span v-if="album" class="topbar-count">{{ photos.length }} 张</span>
-            </div>
-            <span v-if="album?.description" class="topbar-desc">{{ album.description }}</span>
-          </div>
+          <span class="topbar-title">{{ category }}</span>
+          <span class="topbar-count">{{ photos.length }} 张</span>
         </div>
         <div class="topbar-right">
           <el-button
@@ -189,33 +139,22 @@ onMounted(() => {
             class="slideshow-btn"
             @click="startSlideshow"
           />
-          <el-button
-            :icon="Edit"
-            link
-            class="edit-btn"
-            @click="editDialogVisible = true"
-          />
         </div>
       </div>
 
       <!-- 空状态 -->
       <div v-if="photos.length === 0" class="empty-state">
         <el-icon :size="60"><PictureFilled /></el-icon>
-        <p>影集还是空的，去添加照片吧</p>
-        <el-button type="primary" @click="router.push({ name: 'photo' })">
-          去添加
-        </el-button>
+        <p>该分类下暂无照片</p>
       </div>
 
-      <!-- 照片时间线 / 网格 -->
-      <div v-else class="detail-photos" @scroll.passive>
-        <!-- 日期分组 -->
+      <!-- 照片网格 -->
+      <div v-else class="detail-photos">
         <div
           v-for="group in dateGroups"
           :key="group.date"
           class="date-group"
         >
-          <!-- 日期分割线 -->
           <div
             class="date-divider"
             @mouseenter="hoveredDate = group.date"
@@ -231,7 +170,6 @@ onMounted(() => {
             <span class="date-count">{{ group.pictures.length }} 张</span>
           </div>
 
-          <!-- 照片网格 -->
           <div class="photo-grid">
             <PhotoBox
               v-for="picture in group.pictures"
@@ -246,25 +184,17 @@ onMounted(() => {
         </div>
       </div>
 
-      <!-- 幻灯片 -->
       <PhotoSlideshow
         v-model="slideshowVisible"
         :photos="allPhotos"
         :initial-index="slideshowIndex"
-      />
-
-      <!-- 编辑影集弹窗（复用） -->
-      <AlbumCreateEdit
-        v-model="editDialogVisible"
-        :album="album"
-        @success="onEditSuccess"
       />
     </template>
   </div>
 </template>
 
 <style scoped>
-.album-detail-page {
+.smart-detail-page {
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -283,28 +213,13 @@ onMounted(() => {
 }
 .topbar-left {
   display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  min-width: 0;
-  flex: 1;
-}
-.topbar-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-.topbar-title-row {
-  display: flex;
   align-items: center;
   gap: 8px;
 }
-.topbar-desc {
-  font-size: 12px;
-  color: var(--el-text-color-secondary, #909399);
-  line-height: 1.4;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 .back-btn {
   font-size: 20px;
@@ -324,10 +239,6 @@ onMounted(() => {
   font-size: 20px;
   color: var(--el-text-color-regular);
 }
-.edit-btn {
-  font-size: 18px;
-  color: var(--el-text-color-regular);
-}
 
 /* ===== 照片区域 ===== */
 .detail-photos {
@@ -342,7 +253,6 @@ onMounted(() => {
   margin-bottom: 28px;
 }
 
-/* ===== 日期分割线 ===== */
 .date-divider {
   display: flex;
   align-items: center;
@@ -360,14 +270,14 @@ onMounted(() => {
 .date-text {
   font-size: 15px;
   font-weight: 600;
-  color: var(--el-text-color-primary, #303133);
+  color: var(--el-text-color-primary);
 }
 .date-count {
   font-size: 13px;
-  color: var(--el-text-color-secondary, #909399);
+  color: var(--el-text-color-secondary);
 }
 
-/* ===== 照片网格（与照片页一致） ===== */
+/* ===== 照片网格 ===== */
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -387,25 +297,6 @@ onMounted(() => {
 .empty-state p {
   margin: 0;
   font-size: 15px;
-}
-
-/* ===== 影集不存在 ===== */
-.not-found-state {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 60vh;
-  color: #999;
-  gap: 12px;
-}
-.not-found-state p {
-  margin: 0;
-  font-size: 15px;
-}
-.not-found-hint {
-  font-size: 13px !important;
-  color: #c0c4cc;
 }
 
 /* ===== 加载状态 ===== */

@@ -51,6 +51,9 @@ export function usePhotoSelection() {
     if (newMap.size > 0 && !isSelecting.value) {
       isSelecting.value = true
       showHeader()
+    } else if (newMap.size === 0) {
+      isSelecting.value = false
+      hideHeader()
     }
   }
 
@@ -77,6 +80,9 @@ export function usePhotoSelection() {
     if (newMap.size > 0 && !isSelecting.value) {
       isSelecting.value = true
       showHeader()
+    } else if (newMap.size === 0) {
+      isSelecting.value = false
+      hideHeader()
     }
   }
 

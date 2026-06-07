@@ -63,3 +63,19 @@ export function updateCategory(ids, category) {
     data: { ids, category }
   })
 }
+
+// 获取分类分组（智能影集列表，每个分类返回第一张照片作为封面）
+export function getCategoryGroups() {
+  return request({
+    url: '/album/photos/category/first',
+    method: 'get'
+  })
+}
+
+// 获取所有分类的全部照片（智能影集详情用，前端按分类过滤）
+export function getCategoryAllGroups() {
+  return request({
+    url: '/album/photos/category/all',
+    method: 'get'
+  })
+}

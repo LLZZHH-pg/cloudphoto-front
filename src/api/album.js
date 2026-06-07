@@ -9,20 +9,20 @@ export function getAlbumList() {
 }
 
 // 创建影集
-export function createAlbum({ name, description, coverUrl, isPublic }) {
+export function createAlbum({ name, description, coverUrl }) {
   return request({
     url: '/album/create',
     method: 'post',
-    data: { name, description, coverUrl, isPublic: isPublic ? 1 : 0 }
+    data: { name, description, coverUrl }
   })
 }
 
 // 编辑影集
-export function updateAlbum(id, { name, description, coverUrl, isPublic }) {
+export function updateAlbum(id, { name, description, coverUrl }) {
   return request({
     url: `/album/${id}`,
     method: 'put',
-    data: { name, description, coverUrl, isPublic: isPublic ? 1 : 0 }
+    data: { name, description, coverUrl }
   })
 }
 

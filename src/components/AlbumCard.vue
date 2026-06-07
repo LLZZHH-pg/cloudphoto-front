@@ -7,7 +7,7 @@ const props = defineProps({
   album: {
     type: Object,
     required: true
-    // { id, name, coverUrl, photoCount, description, isPublic }
+    // { id, name, coverUrl, photoCount, description }
   }
 })
 

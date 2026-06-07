@@ -36,6 +36,9 @@ const showTrashBtns = computed(() => route.name === 'recycle')
 /** 影集详情页工具栏（移出、移动、复制、下载） */
 const showAlbumDetailBtns = computed(() => route.name === 'album-detail')
 
+/** 智能影集详情页工具栏（添加到影集、下载、软删除） */
+const showSmartAlbumBtns = computed(() => route.name === 'smart-album')
+
 /** 当前影集 ID（仅在影集详情页有效） */
 const currentAlbumId = computed(() => Number(route.params.id) || 0)
 
@@ -98,7 +101,14 @@ function onUploadSuccess() {
           <AddToAlbum v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
           <RemoveFromAlbumButton v-if="showAlbumDetailBtns" />
           <DownloadButton v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
+          <SoftDeleteButton v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
           <UpdateCategory v-if="showAlbumDetailBtns" :sourceAlbumId="currentAlbumId" />
+
+          <!-- 智能影集详情页工具栏 -->
+          <AddToAlbum v-if="showSmartAlbumBtns" />
+          <DownloadButton v-if="showSmartAlbumBtns" />
+          <SoftDeleteButton v-if="showSmartAlbumBtns" />
+          <UpdateCategory v-if="showSmartAlbumBtns" />
         </template>
       </HeaderBase>
 

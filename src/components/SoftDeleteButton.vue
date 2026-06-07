@@ -1,11 +1,28 @@
 <script setup>
-import { inject } from 'vue'
+import { computed, inject } from 'vue'
 import { Delete } from '@element-plus/icons-vue'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
+import { useAlbumSelection } from '../composables/useAlbumSelection'
 import { softDeletePhotos } from '../api/photo'
 import { ElMessage, ElMessageBox } from 'element-plus'
 
-const { getSelectedIds, selectedCount } = usePhotoSelection()
+const props = defineProps({
+  sourceAlbumId: { type: Number, default: -1 }
+})
+
+const photoSelection = usePhotoSelection()
+const albumSelection = useAlbumSelection()
+
+const isPhotoPage = computed(() => props.sourceAlbumId === -1)
+
+const selectedCount = computed(() =>
+  isPhotoPage.value ? photoSelection.selectedCount.value : albumSelection.selectedCount.value
+)
+
+function getSelectedIds() {
+  return isPhotoPage.value ? photoSelection.getSelectedIds() : albumSelection.getSelectedIds()
+}
+
 const refreshKey = inject('refreshKey') 
 
 async function handleSoftDelete() {

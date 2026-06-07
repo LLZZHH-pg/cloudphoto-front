@@ -12,7 +12,7 @@ const props = defineProps({
   album: {
     type: Object,
     default: null
-    // { id, name, description, coverUrl, isPublic }
+    // { id, name, description, coverUrl }
   }
 })
 
@@ -24,8 +24,7 @@ const isEdit = ref(false)
 const form = ref({
   name: '',
   description: '',
-  coverUrl: '',
-  isPublic: false
+  coverUrl: ''
 })
 
 const submitting = ref(false)
@@ -51,12 +50,11 @@ watch(() => props.modelValue, (val) => {
       form.value = {
         name: props.album.name || '',
         description: props.album.description || '',
-        coverUrl: props.album.coverUrl || '',
-        isPublic: !!props.album.isPublic
+        coverUrl: props.album.coverUrl || ''
       }
     } else {
       isEdit.value = false
-      form.value = { name: '', description: '', coverUrl: '', isPublic: false }
+      form.value = { name: '', description: '', coverUrl: '' }
     }
     // 清除上次的校验状态
     formRef.value?.clearValidate()
@@ -134,14 +132,6 @@ function handleCancel() {
         />
       </el-form-item>
 
-      <el-form-item label="公开">
-        <el-switch
-          v-model="form.isPublic"
-          active-text="公开"
-          inactive-text="私有"
-          inline-prompt
-        />
-      </el-form-item>
     </el-form>
 
     <template #footer>
