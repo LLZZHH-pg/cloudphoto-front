@@ -7,10 +7,7 @@ const isSelecting = ref(false)
 
 const { isVisible, show: showHeader, hide: hideHeader } = useHeaderBase()
 
-// ===== 模块级标志：确保路由监听只注册一次 =====
-let _routeWatchInitialized = false
-
-// ===== 工具函数：从 previewUrl 推导存储 URL =====
+// ===== 从 previewUrl 推导存储 URL =====
 function deriveStorageUrl(previewUrl) {
   return previewUrl.replace(/-normal|-thumb/, '').split('?')[0]
 }
@@ -22,7 +19,7 @@ function clearSelection() {
   hideHeader()
 }
 
-// ===== HeaderBase 关闭按钮 → 清除选择 =====
+// ===== HeaderBase 关闭 → 清除选择 =====
 watch(isVisible, (newVal, oldVal) => {
   if (!newVal && oldVal) {
     selectedMap.value = new Map()
@@ -30,7 +27,7 @@ watch(isVisible, (newVal, oldVal) => {
   }
 })
 
-// ===== 导出 composable =====
+
 export function usePhotoSelection() {
 
   const selectedCount = computed(() => selectedMap.value.size)

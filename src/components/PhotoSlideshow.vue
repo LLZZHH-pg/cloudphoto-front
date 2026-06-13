@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, reactive } from 'vue'
-import { Close, ArrowLeft, ArrowRight, VideoPlay, VideoPause, Refresh } from '@element-plus/icons-vue'
+import { Close, ArrowLeft, ArrowRight, VideoPlay, VideoPause, Refresh, FullScreen, Aim } from '@element-plus/icons-vue'
 import { getPhotoDetail } from '../api/photo'
 
 const props = defineProps({
@@ -14,9 +14,12 @@ const emit = defineEmits(['update:modelValue'])
 const currentIndex = ref(0)
 const isPlaying = ref(false)
 const intervalSeconds = ref(3)
+const loopEnabled = ref(true)
 const imgLoading = ref(true)
 const currentUrl = ref('')
 const controlsVisible = ref(true)
+const isFullscreen = ref(false)
+const overlayRef = ref(null)
 let timer = null
 let hideTimer = null
 
@@ -85,7 +88,11 @@ function startTimer() {
     if (hasNext.value) {
       currentIndex.value++
     } else {
-      pause()
+      if (loopEnabled.value) {
+        currentIndex.value = 0
+      } else {
+        pause()
+      }
     }
   }, intervalSeconds.value * 1000)
 }
@@ -127,9 +134,23 @@ function next() {
   }
 }
 
-function replay() {
-  currentIndex.value = 0
-  play()
+function toggleLoop() {
+  loopEnabled.value = !loopEnabled.value
+}
+
+async function toggleFullscreen() {
+  if (!overlayRef.value) return
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen()
+    } else {
+      await overlayRef.value.requestFullscreen()
+    }
+  } catch { /* 全屏 API 不可用，静默忽略 */ }
+}
+
+function syncFullscreenState() {
+  isFullscreen.value = !!document.fullscreenElement
 }
 
 function setIntervalSeconds(n) {
@@ -167,9 +188,13 @@ function onKeydown(e) {
   if (e.key === ' ') { e.preventDefault(); togglePlay() }
 }
 
-onMounted(() => window.addEventListener('keydown', onKeydown))
+onMounted(() => {
+  window.addEventListener('keydown', onKeydown)
+  document.addEventListener('fullscreenchange', syncFullscreenState)
+})
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeydown)
+  document.removeEventListener('fullscreenchange', syncFullscreenState)
   clearTimer()
   clearTimeout(hideTimer)
 })
@@ -180,6 +205,7 @@ onUnmounted(() => {
     <Transition name="slideshow-fade">
       <div
         v-if="modelValue"
+        ref="overlayRef"
         class="slideshow-overlay"
         @mousemove="onMouseMove"
       >
@@ -203,7 +229,11 @@ onUnmounted(() => {
         </div>
 
         <!-- 图片区域 -->
-        <div class="slideshow-image-area" @click="togglePlay">
+        <div
+          class="slideshow-image-area"
+          :class="{ 'fullscreen-fill': isFullscreen }"
+          @click="togglePlay"
+        >
           <div v-if="imgLoading" class="slideshow-loading">
             <el-icon class="is-loading" :size="36"><Loading /></el-icon>
           </div>
@@ -214,27 +244,14 @@ onUnmounted(() => {
           />
         </div>
 
-        <!-- 左右箭头 -->
-        <button
-          class="side-arrow left-arrow"
-          :class="{ hidden: !controlsVisible || !hasPrev }"
-          :disabled="!hasPrev"
-          @click="prev"
-        >
-          <el-icon :size="32"><ArrowLeft /></el-icon>
-        </button>
-        <button
-          class="side-arrow right-arrow"
-          :class="{ hidden: !controlsVisible || !hasNext }"
-          :disabled="!hasNext"
-          @click="next"
-        >
-          <el-icon :size="32"><ArrowRight /></el-icon>
-        </button>
-
         <!-- 底部控制栏 -->
         <div class="slideshow-controls" :class="{ hidden: !controlsVisible }">
-          <button class="ctrl-btn" @click="replay" title="重播">
+          <button
+            class="ctrl-btn"
+            :class="{ 'loop-active': loopEnabled }"
+            @click="toggleLoop"
+            :title="loopEnabled ? '循环播放中' : '循环播放已关闭'"
+          >
             <el-icon :size="18"><Refresh /></el-icon>
           </button>
           <button class="ctrl-btn" :disabled="!hasPrev" @click="prev" title="上一张">
@@ -249,7 +266,17 @@ onUnmounted(() => {
           <button class="ctrl-btn" :disabled="!hasNext" @click="next" title="下一张">
             <el-icon :size="20"><ArrowRight /></el-icon>
           </button>
-          <div class="ctrl-spacer" />
+          <button
+            class="ctrl-btn"
+            :class="{ 'fullscreen-active': isFullscreen }"
+            @click="toggleFullscreen"
+            :title="isFullscreen ? '退出全屏' : '全屏播放'"
+          >
+            <el-icon :size="18">
+              <FullScreen v-if="!isFullscreen" />
+              <Aim v-else />
+            </el-icon>
+          </button>
         </div>
       </div>
     </Transition>
@@ -352,43 +379,17 @@ onUnmounted(() => {
   object-fit: contain;
   -webkit-user-drag: none;
 }
+.fullscreen-fill {
+  padding: 0;
+}
+.fullscreen-fill .slideshow-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 .slideshow-loading {
   color: rgba(255, 255, 255, 0.4);
 }
-
-/* ===== 左右箭头 ===== */
-.side-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
-  border: none;
-  background: rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.8);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  backdrop-filter: blur(4px);
-}
-.side-arrow:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.25);
-  color: #fff;
-}
-.side-arrow:disabled {
-  opacity: 0;
-  pointer-events: none;
-}
-.side-arrow.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-.left-arrow { left: 16px; }
-.right-arrow { right: 16px; }
 
 /* ===== 底部控制栏 ===== */
 .slideshow-controls {
@@ -432,6 +433,16 @@ onUnmounted(() => {
   opacity: 0.25;
   pointer-events: none;
 }
+.loop-active,
+.fullscreen-active {
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+.loop-active:hover,
+.fullscreen-active:hover {
+  background: rgba(255, 255, 255, 0.35) !important;
+  color: #fff;
+}
 .play-pause-btn {
   width: 52px;
   height: 52px;
@@ -439,9 +450,6 @@ onUnmounted(() => {
 }
 .play-pause-btn:hover {
   background: rgba(255, 255, 255, 0.35) !important;
-}
-.ctrl-spacer {
-  width: 40px;
 }
 
 /* ===== 过渡动画 ===== */

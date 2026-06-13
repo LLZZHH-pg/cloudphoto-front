@@ -2,34 +2,30 @@ import { ref, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { useHeaderBase } from './useHeaderBase'
 
-// ===== 模块级 HeaderBase 控制 =====
 const { isVisible: headerVisible, show: showHeader, hide: hideHeader } = useHeaderBase()
 
-// ===== 模块级共享状态（回收站专用，与照片页完全隔离） =====
+// ===== 模块级共享状态 =====
 const selectedMap = ref(new Map())
 const isSelecting = ref(false)
 
-// ===== 工具函数：从 previewUrl 推导存储 URL =====
+// ===== 从 previewUrl 推导存储 URL =====
 function deriveStorageUrl(previewUrl) {
   if (!previewUrl) return ''
   return previewUrl.replace(/-normal|-thumb/, '').split('?')[0]
 }
 
-// ===== HeaderBase 关闭按钮 → 清除选择 =====
 watch(headerVisible, (newVal, oldVal) => {
   if (!newVal && oldVal) {
     clearSelection()
   }
 })
 
-// ===== 清除所有选择 =====
 function clearSelection() {
   selectedMap.value = new Map()
   isSelecting.value = false
   hideHeader()
 }
 
-// ===== 导出 composable =====
 export function useTrashSelection() {
 
   const selectedCount = computed(() => selectedMap.value.size)

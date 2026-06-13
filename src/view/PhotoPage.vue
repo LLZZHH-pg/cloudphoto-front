@@ -83,7 +83,6 @@ async function loadMore() {
  */
 function onScroll(e) {
   const { scrollTop, scrollHeight, clientHeight } = e.target
-  // 距离底部 150px 时触发加载
   if (scrollHeight - scrollTop - clientHeight < 150) {
     loadMore()
   }

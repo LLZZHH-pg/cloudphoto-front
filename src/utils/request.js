@@ -21,13 +21,13 @@ request.interceptors.request.use((config) => {
   return config
 })
 
-// 响应拦截器 - 统一处理业务状态码
+// 响应拦截器
 request.interceptors.response.use(
   (res) => {
     const { code, message, data } = res.data
 
     if (code === 200) {
-      return data   // ★ 直接返回 data，页面调用时不用再 .data.data
+      return data
     }
 
     // token 过期 / 未授权
@@ -41,7 +41,6 @@ request.interceptors.response.use(
     return Promise.reject(new Error(message))
   },
   (err) => {
-    // HTTP 层面的错误（网络断开、500 等）
     if (err.response?.status === 401) {
       localStorage.removeItem('token')
       window.location.href = '/login'
