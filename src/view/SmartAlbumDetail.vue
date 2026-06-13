@@ -2,7 +2,7 @@
 import { ref, computed, onMounted, watch, inject } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft, PictureFilled, VideoPlay } from '@element-plus/icons-vue'
-import { getCategoryAllGroups } from '../api/photo'
+import { getCategoryAllGroups } from '../api/album'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
 import PhotoBox from '../components/PhotoBox.vue'
 import PhotoSlideshow from '../components/PhotoSlideshow.vue'
