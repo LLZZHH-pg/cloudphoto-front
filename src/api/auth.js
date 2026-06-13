@@ -9,6 +9,15 @@ export function authLogin({ acc, pas }) {
   })
 }
 
+// 管理员修改密码
+export function updateAdminPassword(pas) {
+  return request({
+    url: '/user/auth/info/update',
+    method: 'post',
+    data: { pas }
+  })
+}
+
 // 获取管理员套餐列表
 export function getAuthPlanList() {
   return request({

@@ -6,10 +6,45 @@ import {
   getAuthPlanList,
   saveAuthPlan,
   deleteAuthPlan,
-  updateUserStatus
+  updateUserStatus,
+  updateAdminPassword
 } from '../api/auth'
 
 const router = useRouter()
+
+// ========== 修改密码 ==========
+const passwordDialogVisible = ref(false)
+const passwordForm = reactive({ pas: '' })
+const passwordLoading = ref(false)
+
+function openPasswordDialog() {
+  passwordForm.pas = ''
+  passwordDialogVisible.value = true
+}
+
+async function handleUpdatePassword() {
+  if (!passwordForm.pas) {
+    ElMessage.warning('请输入新密码')
+    return
+  }
+  if (passwordForm.pas.length < 6) {
+    ElMessage.warning('密码长度不能少于6位')
+    return
+  }
+  passwordLoading.value = true
+  try {
+    await updateAdminPassword(passwordForm.pas)
+    ElMessage.success('密码修改成功，请重新登录')
+    passwordDialogVisible.value = false
+    localStorage.removeItem('adminToken')
+    localStorage.removeItem('adminInfo')
+    router.push({ name: 'login' })
+  } catch (e) {
+    ElMessage.error(e.message)
+  } finally {
+    passwordLoading.value = false
+  }
+}
 
 // ========== 用户状态管理 ==========
 const userStatusForm = reactive({ userId: '', status: '' })
@@ -148,8 +183,33 @@ onMounted(() => {
   <div class="admin-page">
     <div class="admin-header">
       <h2 class="admin-title">管理员控制台</h2>
+    <div class="header-actions">
+      <el-button @click="openPasswordDialog">修改密码</el-button>
       <el-button type="danger" @click="handleLogout">退出登录</el-button>
     </div>
+    </div>
+
+    <!-- ===== 修改密码弹窗 ===== -->
+    <el-dialog
+      v-model="passwordDialogVisible"
+      title="修改密码"
+      width="360px"
+      :close-on-click-modal="false"
+      destroy-on-close
+    >
+      <el-input
+        v-model="passwordForm.pas"
+        type="password"
+        placeholder="请输入新密码（至少6位）"
+        show-password
+      />
+      <template #footer>
+        <el-button @click="passwordDialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="passwordLoading" @click="handleUpdatePassword">
+          确认修改
+        </el-button>
+      </template>
+    </el-dialog>
 
     <div class="admin-content">
       <!-- 用户状态管理 -->

@@ -39,6 +39,83 @@ function toggleSection(section) {
   collapsedSections[section] = !collapsedSections[section]
 }
 
+// ===== EXIF 字段名中英文对照 =====
+const exifLabelMap = {
+  // 图片基础
+  'Image Width': '图片宽度',
+  'Image Height': '图片高度',
+  'Bits Per Sample': '位深度',
+  'Color Type': '颜色类型',
+  'Compression Type': '压缩类型',
+  'Interlace Method': '隔行扫描',
+  'Filter Method': '滤波方式',
+  'Background Color': '背景颜色',
+
+  // 文件信息
+  'Detected File Type Name': '文件类型',
+  'Detected File Type Long Name': '文件类型全称',
+  'Detected MIME Type': 'MIME 类型',
+  'Expected File Name Extension': '文件扩展名',
+
+  // 色彩空间
+  'White Point X': '白点 X',
+  'White Point Y': '白点 Y',
+  'Red X': '红色 X',
+  'Red Y': '红色 Y',
+  'Green X': '绿色 X',
+  'Green Y': '绿色 Y',
+  'Blue X': '蓝色 X',
+  'Blue Y': '蓝色 Y',
+
+  // 文本
+  'Textual Data': '文本数据',
+
+  // EXIF 常见
+  Make: '相机制造商',
+  Model: '相机型号',
+  Software: '软件',
+  DateTime: '拍摄时间',
+  DateTimeOriginal: '原始拍摄时间',
+  DateTimeDigitized: '数字化时间',
+  ExposureTime: '曝光时间',
+  FNumber: '光圈值',
+  ISOSpeedRatings: 'ISO 感光度',
+  ShutterSpeedValue: '快门速度',
+  ApertureValue: '光圈',
+  BrightnessValue: '亮度',
+  ExposureBiasValue: '曝光补偿',
+  MaxApertureValue: '最大光圈',
+  MeteringMode: '测光模式',
+  Flash: '闪光灯',
+  FocalLength: '焦距',
+  FocalLengthIn35mmFilm: '35mm 等效焦距',
+  ColorSpace: '色彩空间',
+  ExifImageWidth: 'EXIF 图像宽度',
+  ExifImageHeight: 'EXIF 图像高度',
+  Orientation: '方向',
+  XResolution: '水平分辨率',
+  YResolution: '垂直分辨率',
+  ResolutionUnit: '分辨率单位',
+  WhiteBalance: '白平衡',
+  SceneCaptureType: '场景捕获类型',
+  Contrast: '对比度',
+  Saturation: '饱和度',
+  Sharpness: '锐度',
+  LensMake: '镜头制造商',
+  LensModel: '镜头型号',
+  GPSLatitude: 'GPS 纬度',
+  GPSLongitude: 'GPS 经度',
+  GPSAltitude: 'GPS 海拔',
+  GPSTimeStamp: 'GPS 时间戳',
+  GPSDateStamp: 'GPS 日期',
+}
+
+/** 翻译 EXIF 字段名，未匹配则返回原值 */
+function translateExifKey(key) {
+  return exifLabelMap[key] || key
+}
+
+
 /** 统一获取详情 */
 async function fetchDetail() {
   const photo = currentPhoto.value
@@ -178,7 +255,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           </el-button>
         </div>
 
-        <!-- ========== 详细信息弹窗（Element Plus Dialog） ========== -->
+        <!-- ========== 详细信息弹窗 ========== -->
         <el-dialog
           v-model="detailVisible"
           title="文件信息"
@@ -239,7 +316,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
                   v-for="[key, val] in exifEntries"
                   :key="key"
                 >
-                  <span class="detail-label">{{ key }}</span>
+                  <span class="detail-label">{{translateExifKey(key)}}</span>
                   <span class="detail-value">{{ val }}</span>
                 </div>
               </div>
