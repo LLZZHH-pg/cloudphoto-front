@@ -29,85 +29,15 @@ function close() { emit('update:modelValue', false) }
 const detailVisible = ref(false)
 const photoDetail = ref(null)
 const detailLoading = ref(false)
+const imgLoadDone = ref(false)
 
 const collapsedSections = reactive({
   basic: false,   // 基本信息（默认展开）
-  exif: true     // EXIF 信息（默认关闭）
+  exif: true     // EXIF信息（默认关闭）
 })
 /** 折叠分组 */
 function toggleSection(section) {
   collapsedSections[section] = !collapsedSections[section]
-}
-
-// ===== EXIF 字段名中英文对照 =====
-const exifLabelMap = {
-  // 图片基础
-  'Image Width': '图片宽度',
-  'Image Height': '图片高度',
-  'Bits Per Sample': '位深度',
-  'Color Type': '颜色类型',
-  'Compression Type': '压缩类型',
-  'Interlace Method': '隔行扫描',
-  'Filter Method': '滤波方式',
-  'Background Color': '背景颜色',
-
-  // 文件信息
-  'Detected File Type Name': '文件类型',
-  'Detected File Type Long Name': '文件类型全称',
-  'Detected MIME Type': 'MIME 类型',
-  'Expected File Name Extension': '文件扩展名',
-
-  // 色彩空间
-  'White Point X': '白点 X',
-  'White Point Y': '白点 Y',
-  'Red X': '红色 X',
-  'Red Y': '红色 Y',
-  'Green X': '绿色 X',
-  'Green Y': '绿色 Y',
-  'Blue X': '蓝色 X',
-  'Blue Y': '蓝色 Y',
-
-  // 文本
-  'Textual Data': '文本数据',
-
-  // EXIF 常见
-  Make: '相机制造商',
-  Model: '相机型号',
-  Software: '软件',
-  DateTime: '拍摄时间',
-  DateTimeOriginal: '原始拍摄时间',
-  DateTimeDigitized: '数字化时间',
-  ExposureTime: '曝光时间',
-  FNumber: '光圈值',
-  ISOSpeedRatings: 'ISO 感光度',
-  ShutterSpeedValue: '快门速度',
-  ApertureValue: '光圈',
-  BrightnessValue: '亮度',
-  ExposureBiasValue: '曝光补偿',
-  MaxApertureValue: '最大光圈',
-  MeteringMode: '测光模式',
-  Flash: '闪光灯',
-  FocalLength: '焦距',
-  FocalLengthIn35mmFilm: '35mm 等效焦距',
-  ColorSpace: '色彩空间',
-  ExifImageWidth: 'EXIF 图像宽度',
-  ExifImageHeight: 'EXIF 图像高度',
-  Orientation: '方向',
-  XResolution: '水平分辨率',
-  YResolution: '垂直分辨率',
-  ResolutionUnit: '分辨率单位',
-  WhiteBalance: '白平衡',
-  SceneCaptureType: '场景捕获类型',
-  Contrast: '对比度',
-  Saturation: '饱和度',
-  Sharpness: '锐度',
-  LensMake: '镜头制造商',
-  LensModel: '镜头型号',
-  GPSLatitude: 'GPS 纬度',
-  GPSLongitude: 'GPS 经度',
-  GPSAltitude: 'GPS 海拔',
-  GPSTimeStamp: 'GPS 时间戳',
-  GPSDateStamp: 'GPS 日期',
 }
 
 /** 翻译 EXIF 字段名，未匹配则返回原值 */
@@ -115,17 +45,110 @@ function translateExifKey(key) {
   return exifLabelMap[key] || key
 }
 
+// ===== EXIF字段名中英文对照 =====
+const exifLabelMap = {
+  // === 通用基础（PNG/JPEG 都有）===
+  'Image Width': '图片宽度',
+  'Image Height': '图片高度',
+  'Bits Per Sample': '位深度',
+  'Color Type': '颜色类型',
+  'Compression Type': '压缩类型',
+  'Interlace Method': '隔行扫描',
+  'Filter Method': '滤波方式',
 
-/** 统一获取详情 */
+  // === 文件信息 ===
+  'Detected File Type Name': '文件类型',
+  'Detected File Type Long Name': '文件类型全称',
+  'Detected MIME Type': 'MIME 类型',
+  'Expected File Name Extension': '文件扩展名',
+
+  // === 分辨率（metadata-extractor 的两种命名都覆盖）===
+  'X Resolution': '水平分辨率',
+  'Y Resolution': '垂直分辨率',
+  'Resolution Unit': '分辨率单位',
+  'Resolution Units': '分辨率单位',
+
+  // === 色彩空间 ===
+  'Color Space': '色彩空间',
+  'Color space': '色彩空间',
+
+  // === 相机 JPEG 专属 ===
+  Make: '相机制造商',
+  Model: '相机型号',
+  Software: '软件',
+  'Body Serial Number': '机身序列号',
+  'Lens Model': '镜头型号',
+  'Lens Serial Number': '镜头序列号',
+  'Lens Specification': '镜头规格',
+
+  // === 拍摄时间（metadata-extractor 真实 key）===
+  'Date/Time Original': '原始拍摄时间',
+  'Date/Time Digitized': '数字化时间',
+  'Date/Time': '文件修改时间',
+  'Date Created': '创建日期',
+  'Time Created': '创建时间',
+
+  // === 曝光 ===
+  'Exposure Time': '曝光时间',
+  'F-Number': '光圈值',
+  FNumber: '光圈值',
+  'Aperture Value': '光圈',
+  'Max Aperture Value': '最大光圈',
+  'Shutter Speed Value': '快门速度',
+  'Exposure Program': '曝光程序',
+  'Exposure Mode': '曝光模式',
+  'Exposure Bias Value': '曝光补偿',
+  'ISO Speed Ratings': 'ISO 感光度',
+
+  // === 测光 / 对焦 / 闪光 ===
+  'Metering Mode': '测光模式',
+  'Focal Length': '焦距',
+  Flash: '闪光灯',
+
+  // === 白平衡 ===
+  'White Balance Mode': '白平衡模式',
+  WhiteBalance: '白平衡',
+
+  // === 其他 EXIF ===
+  'Scene Capture Type': '场景捕获类型',
+  Contrast: '对比度',
+  Saturation: '饱和度',
+  Sharpness: '锐度',
+
+  // === GPS ===
+  'GPS Latitude': 'GPS 纬度',
+  'GPS Longitude': 'GPS 经度',
+  'GPS Altitude': 'GPS 海拔',
+}
+
+// 解析 fileExif
+const exifEntries = computed(() => {
+  const raw = photoDetail.value?.fileExif
+  if (!raw) return []
+  try {
+    return Object.entries(JSON.parse(raw))
+      .filter(([key]) => key in exifLabelMap)
+  } catch {
+    return []
+  }
+})
+
+
+function openDetail() {
+  detailVisible.value = true
+}
+
+/** 获取详情 */
 async function fetchDetail() {
   const photo = currentPhoto.value
   if (!photo) {
     photoDetail.value = null
     return
   }
-  // 清空旧数据，避免闪现上一张的图
+  // 清空旧数据
   photoDetail.value = null
   detailLoading.value = true
+  imgLoadDone.value = false
   try {
     const data = await getPhotoDetail(photo.pictureid)
     photoDetail.value = data
@@ -159,24 +182,8 @@ watch(currentIndex, (newIdx, oldIdx) => {
   }
 })
 
-// 只用详情接口的 URL，不降级到缩略图
 const displayUrl = computed(() => photoDetail.value?.previewUrl || '')
 
-/** 打开详细信息弹窗 */
-function openDetail() {
-  detailVisible.value = true
-}
-
-// 解析 fileExif
-const exifEntries = computed(() => {
-  const raw = photoDetail.value?.fileExif
-  if (!raw) return []
-  try {
-    return Object.entries(JSON.parse(raw))
-  } catch {
-    return []
-  }
-})
 
 // ===== 键盘事件 =====
 function onKeydown(e) {
@@ -209,18 +216,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
         <!-- 图片区域 -->
         <div class="viewer-image-area">
           <!-- 加载中 -->
-          <div v-if="detailLoading" class="viewer-image-loading">
+          <div v-if="detailLoading || !imgLoadDone" class="viewer-image-loading">
             <el-icon class="is-loading" :size="36"><Loading /></el-icon>
           </div>
           <!-- 图片 -->
           <img
-            v-else-if="displayUrl"
+            v-show="displayUrl && imgLoadDone"
             :src="displayUrl"
+            @load="imgLoadDone = true"
             :alt="`照片 ${currentPhoto?.pictureid}`"
             class="viewer-image"
           />
           <!-- 加载失败 -->
-          <span v-else class="viewer-image-error">图片加载失败</span>
+          <span v-if="!displayUrl && !detailLoading" class="viewer-image-error">图片加载失败</span>
         </div>
 
         <!-- 底部控制栏 -->
