@@ -213,7 +213,7 @@ async function handleCopy() {
     </div>
 
     <template #footer>
-      <el-button @click="actionDialogVisible = false">取消</el-button>
+      <el-button type="info" @click="actionDialogVisible = false">取消</el-button>
       <el-button type="warning" @click="handleMove">
         移动（从当前影集移除）
       </el-button>

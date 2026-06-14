@@ -5,6 +5,7 @@ import { ArrowLeft, Edit, WarningFilled, PictureFilled, VideoPlay } from '@eleme
 import { getAlbumDetail } from '../api/album'
 import { useAlbumSelection } from '../composables/useAlbumSelection'
 import PhotoBox from '../components/PhotoBox.vue'
+import PhotoViewer from '../components/PhotoViewer.vue'
 import PhotoSlideshow from '../components/PhotoSlideshow.vue'
 import CheckBox from '../components/CheckBox.vue'
 import AlbumCreateEdit from '../components/AlbumCreateEdit.vue'
@@ -34,6 +35,10 @@ const refreshKey = inject('refreshKey', ref(0))
 
 // ===== 编辑弹窗 =====
 const editDialogVisible = ref(false)
+
+// ===== 照片查看器 =====
+const viewerVisible = ref(false)
+const viewerIndex = ref(0)
 
 // ===== 幻灯片 =====
 const slideshowVisible = ref(false)
@@ -106,12 +111,12 @@ async function loadDetail() {
 /** 将所有照片展平为一个数组，供幻灯片翻页 */
 const allPhotos = computed(() => photos.value)
 
-/** 点击 PhotoBox 非复选框区域 → 打开幻灯片 */
-function openSlideshow(pictureid) {
+/** 点击 PhotoBox 非复选框区域 → 打开照片查看器 */
+function openViewer(pictureid) {
   const idx = allPhotos.value.findIndex(p => p.pictureid === pictureid)
   if (idx !== -1) {
-    slideshowIndex.value = idx
-    slideshowVisible.value = true
+    viewerIndex.value = idx
+    viewerVisible.value = true
   }
 }
 
@@ -240,11 +245,18 @@ onMounted(() => {
               :selected="isSelected(picture.pictureid)"
               :force-show-checkbox="isSelecting"
               @toggle="togglePhoto({ id: picture.pictureid, previewUrl: picture.previewUrl })"
-              @preview="openSlideshow"
+              @preview="openViewer"
             />
           </div>
         </div>
       </div>
+
+      <!-- 照片查看器 -->
+      <PhotoViewer
+        v-model="viewerVisible"
+        :photos="allPhotos"
+        :initial-index="viewerIndex"
+      />
 
       <!-- 幻灯片 -->
       <PhotoSlideshow

@@ -5,6 +5,7 @@ import { ArrowLeft, PictureFilled, VideoPlay } from '@element-plus/icons-vue'
 import { getCategoryAllGroups } from '../api/album'
 import { usePhotoSelection } from '../composables/usePhotoSelection'
 import PhotoBox from '../components/PhotoBox.vue'
+import PhotoViewer from '../components/PhotoViewer.vue'
 import PhotoSlideshow from '../components/PhotoSlideshow.vue'
 import CheckBox from '../components/CheckBox.vue'
 
@@ -26,6 +27,9 @@ const photos = ref([])
 const dateGroups = ref([])
 const loading = ref(true)
 const hoveredDate = ref(null)
+
+const viewerVisible = ref(false)
+const viewerIndex = ref(0)
 
 const slideshowVisible = ref(false)
 const slideshowIndex = ref(0)
@@ -80,11 +84,11 @@ async function loadPhotos() {
 
 const allPhotos = computed(() => photos.value)
 
-function openSlideshow(pictureid) {
+function openViewer(pictureid) {
   const idx = allPhotos.value.findIndex(p => p.pictureid === pictureid)
   if (idx !== -1) {
-    slideshowIndex.value = idx
-    slideshowVisible.value = true
+    viewerIndex.value = idx
+    viewerVisible.value = true
   }
 }
 
@@ -178,11 +182,17 @@ onMounted(() => {
               :selected="isSelected(picture.pictureid)"
               :force-show-checkbox="isSelecting"
               @toggle="togglePhoto({ id: picture.pictureid, previewUrl: picture.previewUrl })"
-              @preview="openSlideshow"
+              @preview="openViewer"
             />
           </div>
         </div>
       </div>
+
+      <PhotoViewer
+        v-model="viewerVisible"
+        :photos="allPhotos"
+        :initial-index="viewerIndex"
+      />
 
       <PhotoSlideshow
         v-model="slideshowVisible"
